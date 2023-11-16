@@ -1,0 +1,65 @@
+.navbar {
+    background-color: var(--default-background-header-color-dark) !important;
+    position: sticky;
+    top: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.614);
+
+    .navbar-brand,
+    .nav-link {
+        color: var(--white);
+    }
+
+    .nav-link.active {
+        color: var(--white);
+    }
+}
+.navbar-toggler {
+    background-color: var(--default-background-header-color-dark) !important;
+}
+
+.bks-logo {
+    width: 3rem;
+    border-radius: 30%;
+}
+
+.nav-link.show {
+    color: var(--white) !important;
+}
+
+.navbar-toggler.collapsed {
+    color: var(--white) !important;
+}
+
+.dropdown-item:hover {
+    background-color: rgb(208, 208, 208) !important;
+    border-radius: 5px;
+    padding-left: 0.8rem;
+}
+
+.auth-button {
+    margin: 0.5rem;
+    background-color: transparent !important;
+    border: none !important;
+
+    &:hover {
+        background-color: rgba(10, 0, 46, 0.854) !important;
+    }
+}
+
+@media (max-width: 62.5rem) {
+    .authentication-wrap {
+        display: none !important;
+    }
+
+    .auth-route {
+        display: block !important;
+    }
+
+    .login {
+        border-top: 1px var(--white) solid !important;
+    }
+}

@@ -1,0 +1,45 @@
+.wrapper {
+    background-color: var(--default-background-color-dark);
+    color: white;
+}
+
+.carousel-item {
+    height: 40rem !important;
+    position: relative;
+    background-color: black;
+    color: white;
+
+    p {
+        font-size: 1.2rem;
+    }
+
+    .carousel-caption {
+        padding-bottom: 4rem;
+    }
+
+    .overlay-image {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-position: center;
+        background-size: cover;
+        opacity: 0.5;
+    }
+}
+
+.carousel {
+    margin-bottom: 5rem;
+}
+
+.container-dad {
+    background-color: rgba(128, 128, 128, 0.34) !important;
+}
+.featurette-heading {
+    margin-top: 3rem;
+    font-size: 4rem;
+}
+
+.marketing {
+}
