@@ -1,0 +1,29 @@
+.form-box-profile {
+    background-color: white;
+    color: black;
+    width: 100%;
+    padding: 1.5rem;
+    height: 26rem;
+    border-radius: 5px;
+}
+
+.avatar-box {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+
+    .avatar {
+        height: 100%;
+        width: 50%;
+        border-radius: 50%;
+        border: 2px black solid;
+    }
+}
+
+.col {
+    font-size: 1.2rem;
+    border: 1px gray solid;
+    border-radius: 5px;
+    // background-color: var(--default-background-header-color-dark);
+    margin: 0 0.2rem;
+}

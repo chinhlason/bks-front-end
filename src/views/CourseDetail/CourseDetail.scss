@@ -1,0 +1,40 @@
+// .wrapper-course {
+//     // background-color: var(--default-background-header-color-dark);
+//     height: 40rem;
+// }
+
+.course-image-detail {
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+    border: 2px rgb(255, 255, 255) solid;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    border-radius: 8px;
+}
+
+// .course-detail {
+//     height: 30rem;
+// }
+
+.course-heading {
+    // font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.course-description {
+    padding-left: 2rem;
+    position: relative;
+}
+
+.btn-buy {
+    // position: fixed;
+    // bottom: 0;
+    // right: 0;
+    height: 4rem;
+    width: 13rem;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
