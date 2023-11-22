@@ -2,6 +2,7 @@ import './Footer.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFacebook, faInstagram, faLinkedin, faTwitter } from '@fortawesome/free-brands-svg-icons';
 import QRImage from '~/assets/img/QR.jpg';
+
 function Footer() {
     return (
         <footer>
