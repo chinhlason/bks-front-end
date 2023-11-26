@@ -1,0 +1,23 @@
+@media (max-width: 62.5rem) {
+    .date-controller {
+        display: block !important;
+    }
+    .ml-3 {
+        margin-left: 0 !important;
+    }
+}
+
+.purchase-item {
+    border-radius: 5px;
+    background-color: var(--default-background-header-color-dark);
+    border: 1px solid white;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+@media (max-width: 48.5rem) {
+    .btn-purchase {
+        display: block !important;
+        margin-top: 0.5rem;
+    }
+}

@@ -13,13 +13,56 @@ import Col from 'react-bootstrap/Col';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faRightFromBracket, faBook, faUser } from '@fortawesome/free-solid-svg-icons';
 import Avatar from '~/assets/img/avatar.png';
+import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import httpRequest from '~/utils/htppRequest';
+const SIGNOUT_URL = '/user/auth/signout';
 
 function Header() {
-    const isLogined = true;
+    // const isLogined = false;
+    const navigate = useNavigate();
+    const [isLogined, setIsLogined] = useState(false);
+    const [fullName, setFullName] = useState('');
+    useEffect(() => {
+        const Login = localStorage.getItem('isLogined');
+        const fullNameFromLS = localStorage.getItem('fullname');
+        console.log(Login);
+        if (Login !== null) {
+            setIsLogined(true);
+            setFullName(fullNameFromLS);
+        } else {
+            setIsLogined(false);
+            setFullName('');
+        }
+    });
+
+    const signOut = () => {
+        httpRequest
+            .post(SIGNOUT_URL, {}, { withCredentials: true })
+            .then((response) => {
+                localStorage.removeItem('id');
+                localStorage.removeItem('username');
+                localStorage.removeItem('fullname');
+                localStorage.removeItem('phone');
+                localStorage.removeItem('email');
+                localStorage.removeItem('role');
+                localStorage.removeItem('isLogined');
+                navigate('/');
+            })
+            .catch((err) => {
+                console.log('notok');
+            });
+    };
+    console.log(fullName);
     return (
         <Navbar expand="lg" className="bg-body-tertiary">
-            <Container>
-                <Navbar.Brand href="#home" className="logo-home">
+            <Container className="container-header">
+                <Navbar.Brand
+                    onClick={() => {
+                        navigate('/');
+                    }}
+                    className="logo-home"
+                >
                     <img className="bks-logo" src={BKSLogo} alt="QR Code" />
                 </Navbar.Brand>
 
@@ -29,7 +72,7 @@ function Header() {
                         <div
                             className={isLogined ? 'user-profile-dropdown-menu d-block' : 'user-profile-dropdown-menu'}
                         >
-                            <h4 className="auth-route d-none mt-3">Hello Son Ngo!</h4>
+                            <h4 className="auth-route d-none mt-3">Hello {fullName}!</h4>
                             <Nav.Link className="auth-route d-none" href="#">
                                 <FontAwesomeIcon icon={faUser} className="icon" />
                                 View profile
@@ -43,7 +86,7 @@ function Header() {
                                 <FontAwesomeIcon icon={faBell} className="icon" />
                                 Notification
                             </Nav.Link>
-                            <Nav.Link className="auth-route d-none sign-out" href="#">
+                            <Nav.Link className="auth-route d-none sign-out" onClick={signOut}>
                                 <FontAwesomeIcon icon={faRightFromBracket} className="icon" />
                                 Sign out
                             </Nav.Link>
@@ -61,7 +104,12 @@ function Header() {
                         <Nav.Link href="#">Payment</Nav.Link>
                         <NavDropdown.Divider />
                         <div className={isLogined ? 'authen-dropdown-menu' : 'authen-dropdown-menu d-block'}>
-                            <Nav.Link className="auth-route d-none login" href="#">
+                            <Nav.Link
+                                className="auth-route d-none login"
+                                onClick={() => {
+                                    navigate('/login');
+                                }}
+                            >
                                 Log in
                             </Nav.Link>
                             <Nav.Link className="auth-route d-none" href="#">
@@ -73,21 +121,27 @@ function Header() {
 
                 <div className={isLogined ? 'authentication-wrap ' : 'authentication-wrap d-flex'}>
                     <Col xs="auto">
-                        <Button className="auth-button" type="submit">
+                        <Button
+                            className="auth-button"
+                            type="button"
+                            onClick={() => {
+                                navigate('/login');
+                            }}
+                        >
                             Log in
                         </Button>
                     </Col>
                     <Col xs="auto">
-                        <Button className="auth-button" type="submit">
+                        <Button className="auth-button" type="button">
                             Sign up
                         </Button>
                     </Col>
                 </div>
 
                 <Navbar.Brand className={isLogined ? 'logined-wrap d-block' : 'logined-wrap'}>
-                    <div class="btn-group">
+                    <div className="btn-group">
                         <a
-                            class="btndropdown-toggle  bell d-flex"
+                            className="btndropdown-toggle  bell d-flex"
                             href="#"
                             role="button"
                             data-bs-toggle="dropdown"
@@ -97,12 +151,12 @@ function Header() {
                                 <FontAwesomeIcon icon={faBell} />
                             </Col>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">Sex</ul>
+                        <ul className="dropdown-menu dropdown-menu-end">Sex</ul>
                     </div>
 
-                    <div class="btn-group">
+                    <div className="btn-group">
                         <a
-                            class="btndropdown-toggle"
+                            className="btndropdown-toggle"
                             href="#"
                             role="button"
                             data-bs-toggle="dropdown"
@@ -112,19 +166,19 @@ function Header() {
                                 <img className="avatar" src={Avatar} alt="avatar" />
                             </Col>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul className="dropdown-menu dropdown-menu-end">
                             <li>
-                                <button class="dropdown-item" type="button">
+                                <button className="dropdown-item" type="button">
                                     View profile
                                 </button>
                             </li>
                             <li>
-                                <button class="dropdown-item" type="button">
+                                <button className="dropdown-item" type="button">
                                     View your owned courses
                                 </button>
                             </li>
                             <li>
-                                <button class="dropdown-item" type="button">
+                                <button className="dropdown-item" type="button" onClick={signOut}>
                                     Sign out
                                 </button>
                             </li>

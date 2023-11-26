@@ -27,3 +27,40 @@ body {
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+.ml-3 {
+    margin-left: 3rem;
+}
+
+.mr-3 {
+    margin-right: 3rem;
+}
+
+.df-spbw {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pd-lr-3 {
+    padding: 0 3rem;
+}
+.pd-lr-6 {
+    padding: 0 6rem;
+}
+.pd-lr-9 {
+    padding: 0 9rem;
+}
+@media (max-width: 62.5rem) {
+    .pd-lr-6,
+    .pd-lr-9,
+    .pd-lr-3 {
+        padding: 0 !important;
+    }
+}
+
+@media (max-width: 48.5rem) {
+    .df-spbw {
+        display: block !important;
+    }
+}

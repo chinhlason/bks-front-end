@@ -23,6 +23,7 @@
         opacity: 0.8;
     }
 }
+
 .navbar-toggler {
     background-color: var(--default-background-header-color-dark) !important;
 }
@@ -30,6 +31,9 @@
 .bks-logo {
     width: 3rem;
     border-radius: 30%;
+    &:hover {
+        cursor: pointer;
+    }
 }
 
 .nav-link.show {
@@ -89,6 +93,11 @@
 
     .icon {
         margin: 0 1rem;
+    }
+
+    .container-header {
+        max-height: 100vh;
+        overflow: auto;
     }
 }
 

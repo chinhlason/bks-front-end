@@ -1,6 +1,11 @@
 import React from 'react';
 import './Login.scss';
 import { useForm, Controller } from 'react-hook-form';
+import httpRequest from '~/utils/htppRequest';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Alert } from 'bootstrap';
+const LOGIN_URL = '/user/auth/signin';
 
 function Login() {
     const {
@@ -9,11 +14,47 @@ function Login() {
         control,
         formState: { errors },
     } = useForm();
+    const navigate = useNavigate();
+    const isLogined = localStorage.getItem('isLogined');
+
+    useEffect(() => {
+        if (isLogined !== null) {
+            navigate('/');
+        }
+    }, []);
+
+    const onSubmit = (data) => {
+        const username = data.username;
+        const password = data.password;
+        httpRequest
+            .post(
+                LOGIN_URL,
+                {
+                    username,
+                    password,
+                },
+                { withCredentials: true },
+            )
+            .then((response) => {
+                localStorage.setItem('id', `${response.data.id}`);
+                localStorage.setItem('username', `${response.data.username}`);
+                localStorage.setItem('fullname', `${response.data.fullname}`);
+                localStorage.setItem('phone', `${response.data.phone}`);
+                localStorage.setItem('email', `${response.data.email}`);
+                localStorage.setItem('role', `${response.data.roles[0]}`);
+                localStorage.setItem('isLogined', `true`);
+                navigate('/');
+            })
+            .catch((err) => {
+                alert(err.response.data.message);
+            });
+    };
+
     return (
-        <div className="Auth-form-container">
-            <form className="Auth-form">
+        <div className="Auth-form-container container">
+            <div className="Auth-form">
                 <div className="Auth-form-content">
-                    <form className="form-box">
+                    <form className="form-box" onSubmit={handleSubmit(onSubmit)}>
                         <h3 className="Auth-form-title">Sign In</h3>
                         <div className="form-group mt-3">
                             <label>Username</label>
@@ -54,7 +95,7 @@ function Login() {
                         </p>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     );
 }

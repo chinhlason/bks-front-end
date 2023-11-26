@@ -1,0 +1,35 @@
+.btn-access {
+    margin-right: 0.5rem;
+    background-color: green !important;
+    border: none;
+    &:hover {
+        cursor: pointer;
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+}
+
+.btn-deny {
+    background-color: red !important;
+    border: none;
+    &:hover {
+        cursor: pointer;
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+}
+
+.notification-item {
+    border-radius: 5px;
+    background-color: var(--default-background-header-color-dark);
+    border: 1px solid white;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+@media (max-width: 48.5rem) {
+    .btn-notification {
+        display: block !important;
+        margin-top: 0.5rem;
+    }
+}

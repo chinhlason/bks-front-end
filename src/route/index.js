@@ -10,7 +10,14 @@ import CourseDetail from '~/views/CourseDetail';
 import PostsGeneral from '~/views/PostsGeneral';
 import PostDetail from '~/views/PostDetail';
 import Lesson from '~/views/Lesson';
-
+import Controller from '~/views/ADMIN/Controller';
+import AddCourse from '~/views/ADMIN/CourseController/AddCourse';
+import UpdateCourse from '~/views/ADMIN/CourseController/UpdateCourse';
+import AddPost from '~/views/ADMIN/PostController/AddPost';
+import NotificationController from '~/views/NotificationController';
+import PurchaseController from '~/views/ADMIN/PurchaseController';
+import AddPurchase from '~/views/ADMIN/PurchaseController/AddPurchase';
+import UpdatePurchase from '~/views/ADMIN/PurchaseController/UpdatePurchase';
 //Not require login pages
 const publicRoutes = [
     { path: '/', component: Home },
@@ -23,6 +30,14 @@ const publicRoutes = [
     { path: '/posts', component: PostsGeneral },
     { path: '/post', component: PostDetail },
     { path: '/lesson', component: Lesson },
+    { path: '/admin-controller', component: Controller },
+    { path: '/admin-add-course', component: AddCourse },
+    { path: '/admin-update-course', component: UpdateCourse },
+    { path: '/admin-add-post', component: AddPost },
+    { path: '/admin-purchase', component: PurchaseController },
+    { path: '/notification', component: NotificationController },
+    { path: '/admin-add-purchase', component: AddPurchase },
+    { path: '/admin-update-purchase', component: UpdatePurchase },
 ];
 
 //Require login pages
