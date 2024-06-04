@@ -1,0 +1,33 @@
+.option-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.option-box div {
+    margin: 5px 0;
+    cursor: pointer;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.note-element {
+    background-color: rgba(237, 237, 237, 0.63);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 5px;
+    min-height: 5.918rem;
+    max-height: 50rem;
+    overflow: auto;
+    border-radius: 5px;
+}
+
+.update-note-box {
+    padding: 0.3rem;
+    // border: rgba(0, 0, 0, 0.498) 2px solid;
+    border-radius: 5px;
+    background-color: rgba(237, 237, 237, 0.63);
+}

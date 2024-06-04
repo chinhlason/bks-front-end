@@ -5,3 +5,17 @@
     z-index: 1000;
     cursor: pointer;
 }
+
+.signup-container {
+    display: grid;
+    place-items: center;
+    height: 100vh;
+    // background-color: red;
+}
+
+.background-section {
+    // width: 200px;
+    // height: 200px;
+    background-image: linear-gradient(45deg, #0641e4, #00ff00); /* Gradient từ màu đỏ đến màu xanh lá cây */
+    transition: background-image 0.5s ease;
+}

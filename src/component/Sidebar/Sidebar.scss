@@ -1,0 +1,51 @@
+// Sidebar.scss
+
+.side-bar {
+    position: -webkit-sticky; /* Cho các trình duyệt sử dụng prefix -webkit- */
+    position: sticky;
+    top: 0; /* Hoặc bottom: 0; tùy thuộc vào vị trí bạn muốn giữ phần tử */
+    height: 100vh; /* Chiều cao của viewport */
+    overflow-y: auto; /* Cho phép cuộn nếu nội dung của thanh bên dài hơn chiều cao của viewport */
+    background-color: rgb(237, 255, 250); /* Màu nền */
+    // padding-top: 20px;
+    // padding: 20px;
+    // padding-left: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+.test {
+    word-break: break-all; /* Cho phép từ bị chia nhỏ để đảm bảo nội dung không vượt quá kích thước của phần tử p */
+    white-space: pre-wrap; /* Đảm bảo khoảng trắng và dòng mới được bảo toàn */
+}
+
+.profile {
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-doctor {
+    padding-top: 1rem;
+    padding-bottom: 0.05rem;
+    background-color: rgba(0, 216, 169, 0.719);
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(0, 154, 121, 0.719);
+    }
+}
+
+.avatar {
+    height: 6.5rem;
+    border-radius: 50%;
+}
+
+.signout-button {
+    position: absolute;
+    bottom: 1rem;
+    width: 100%; /* Đảm bảo nút "Đăng xuất" có chiều rộng bằng với thanh sidebar */
+    background-color: transparent; /* Định dạng màu nền của nút "Đăng xuất" */
+    padding: 10px; /* Thêm padding cho nút "Đăng xuất" */
+    text-align: center; /* Căn giữa văn bản của nút "Đăng xuất" */
+    color: black; /* Màu văn bản của nút "Đăng xuất" */
+    cursor: pointer; /* Biến con trỏ thành dấu nhấp chuột khi di chuột qua nút "Đăng xuất" */
+}

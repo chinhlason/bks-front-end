@@ -1,0 +1,17 @@
+.room-item-wrapper {
+    display: flex;
+    background-color: rgba(0, 216, 169, 0.719);
+    height: 12rem;
+    // width: 80%;
+    margin: 0 1rem;
+    border-radius: 2rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 2.5rem;
+    &:hover {
+        scale: 1.05;
+        cursor: pointer;
+    }
+}

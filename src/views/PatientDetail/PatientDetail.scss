@@ -1,0 +1,62 @@
+h4,
+h5 {
+    font-weight: lighter !important;
+}
+
+li {
+    font-size: 1.3rem;
+}
+
+.note-box {
+    // padding: 0.7rem;
+    min-height: 15rem;
+    max-height: 20rem;
+    // border: 1px solid black;
+    overflow: auto;
+}
+
+.form-note-control {
+    min-height: 16.3rem !important;
+    width: 100% !important;
+    border: 1px solid black !important;
+    padding: 0.7rem;
+}
+
+.time {
+    color: rgb(133, 133, 133) !important;
+}
+
+.NA-note {
+    background-color: rgba(237, 237, 237, 0.63);
+    border-radius: 3px;
+    margin-bottom: 5px;
+    padding: 10px;
+    height: 100%;
+}
+.option-rc {
+    display: flex;
+    justify-content: space-between;
+}
+
+.device-option-button {
+    &:hover {
+        cursor: pointer;
+        text-decoration: underline;
+    }
+}
+
+.select-history {
+    font-size: 1.2rem;
+}
+
+.option-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.option-box div {
+    margin: 5px 0; /* Khoảng cách giữa các phần tử */
+}

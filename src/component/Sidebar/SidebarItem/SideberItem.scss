@@ -1,0 +1,9 @@
+.sidebar-item {
+    font-size: 1.1rem !important;
+    padding: 10px 0 10px 25px;
+    &:hover {
+        background-color: rgba(0, 216, 169, 0.288);
+        cursor: pointer;
+        border-radius: 5px;
+    }
+}

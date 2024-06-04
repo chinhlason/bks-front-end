@@ -1,0 +1,33 @@
+// DefaultLayout.scss
+
+.col-md-2 {
+    > .sidebar {
+        width: 100%;
+    }
+}
+
+.col-md-10 {
+}
+
+.side-bar-wrapper {
+    position: relative;
+    width: 13% !important;
+    // width: 16.7% !important;
+}
+
+.body-wrapper {
+    width: 87% !important;
+}
+
+.content-wrapper {
+    padding: 0 !important;
+    // width: calc((12 - 1.67) * 100%);
+}
+
+// .side-bar-wrapper {
+//
+// }
+
+// .content-wrapper {
+//     width: calc((12 - 1.67) * 100%);
+// }
