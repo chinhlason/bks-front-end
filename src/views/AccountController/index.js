@@ -8,30 +8,25 @@ import axios from 'axios';
 import httpRequest from '~/util/httpRequest';
 import moment from 'moment';
 
-function DeviceStorageDif() {
+function AccountController() {
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm();
     const navigate = useNavigate();
-    const [isUpdateVisible, setIsUpdateVisible] = React.useState(false);
     const [devices, setDevices] = React.useState([]);
     const queryParameters = new URLSearchParams(window.location.search);
-    const [selectedDeviceSerial, setSelectedDeviceSerial] = React.useState('');
-    const patient = queryParameters.get('patient');
-    const id = queryParameters.get('id');
+    const [selectedIdRecord, setSelectedIdRecord] = React.useState(null);
     const nav = useNavigate();
     const fetchData = () => {
         httpRequest
-            .get('/device/in-storage')
+            .get('/user/get-all-doctors')
             .then((response) => {
                 // Sắp xếp dữ liệu theo ngày nhập
-                const sortedByDate = response.data.sort((a, b) => new Date(b.create_at) - new Date(a.create_at));
-                // Tiếp tục sắp xếp theo tên (nếu cần)
-                const sortedDevices = sortedByDate.sort((a, b) => a.serial.localeCompare(b.serial));
-                console.log(sortedDevices);
-                setDevices(sortedDevices);
+                const sortedByName = response.data.sort((a, b) => a.fullname.localeCompare(b.fullname));
+                console.log(sortedByName);
+                setDevices(sortedByName);
             })
             .catch((error) => {
                 console.error('Error fetching data:', error);
@@ -43,55 +38,49 @@ function DeviceStorageDif() {
     }, []);
 
     const handleDisable = (id, serial) => {
-        const userConfirmed = window.confirm(`Bạn có chắc chắn muốn vô hiệu hoá thiết bị ${serial} này không?`);
-        if (userConfirmed) {
-            httpRequest
-                .put(`/device/disable?device=${id}`, {})
-                .then((response) => {
-                    console.log('Device disabled:', response.data);
-                    fetchData();
-                })
-                .catch((error) => {
-                    console.error('Error disabling device:', error);
-                });
-        }
+        // const userConfirmed = window.confirm(`Bạn có chắc chắn muốn vô hiệu hoá thiết bị ${serial} này không?`);
+        // if (userConfirmed) {
+        //     httpRequest
+        //         .put(`/device/disable?device=${id}`, {}, { withCredentials: true })
+        //         .then((response) => {
+        //             console.log('Device disabled:', response.data);
+        //             fetchData();
+        //         })
+        //         .catch((error) => {
+        //             console.error('Error disabling device:', error);
+        //         });
+        // }
+    };
+    const handleRowClick = (row) => {
+        navigate(`/profile-admin?id=${row.original.id}`);
+    };
+    const handleActivate = (id, serial) => {
+        // const userConfirmed = window.confirm(`Bạn có chắc chắn muốn kích hoạt thiết bị ${serial} này không?`);
+        // if (userConfirmed) {
+        //     httpRequest
+        //         .put(`/device/enable?device=${id}`, {}, { withCredentials: true })
+        //         .then((response) => {
+        //             console.log('Device activated:', response.data);
+        //             fetchData();
+        //         })
+        //         .catch((error) => {
+        //             console.error('Error activating device:', error);
+        //         });
+        // }
     };
 
-    const handleActivate = (id, serial) => {
-        const userConfirmed = window.confirm(`Bạn có chắc chắn muốn kích hoạt thiết bị ${serial} này không?`);
+    const handleUpdate = (doctorCode) => {
+        const userConfirmed = window.confirm(`Xác nhận thay đổi quyền của bác sĩ có mã bác sĩ là ${doctorCode} ?`);
         if (userConfirmed) {
             httpRequest
-                .put(`/device/enable?device=${id}`, {})
+                .put(`/user/change-permission?doctorcode=${doctorCode}`, {})
                 .then((response) => {
-                    console.log('Device activated:', response.data);
                     fetchData();
                 })
                 .catch((error) => {
                     console.error('Error activating device:', error);
                 });
         }
-    };
-
-    const handleUpdate = (serial) => {
-        setIsUpdateVisible(true);
-        setSelectedDeviceSerial(serial);
-    };
-
-    const onSubmit = (data) => {
-        const { newSerial } = data;
-        const oldSerial = selectedDeviceSerial;
-
-        httpRequest
-            .put(`/device/update?oldserial=${oldSerial}&newserial=${newSerial}`, {})
-            .then((response) => {
-                console.log('Device updated:', response.data);
-                setIsUpdateVisible(false);
-                fetchData();
-                alert('Cập nhật thành công');
-            })
-            .catch((error) => {
-                console.error('Error updating device:', error);
-            });
     };
 
     const data = React.useMemo(() => devices, [devices]);
@@ -102,21 +91,25 @@ function DeviceStorageDif() {
                 Cell: ({ row }) => row.index + 1,
             },
             {
-                Header: 'Serial',
-                accessor: 'serial',
+                Header: 'Họ tên',
+                accessor: 'fullname',
             },
             {
-                Header: 'Ngày nhập',
-                accessor: 'create_at',
-                Cell: ({ value }) => moment(value).format('DD-MM-YYYY HH:mm:ss'),
+                Header: 'DoctorCode',
+                accessor: 'doctor_code',
+            },
+
+            {
+                Header: 'Email',
+                accessor: 'email',
             },
             {
-                Header: 'Thời gian bảo hành (tháng)',
-                accessor: 'warraty',
+                Header: 'Số điện thoại',
+                accessor: 'phone',
             },
             {
-                Header: 'Trạng thái',
-                accessor: 'status',
+                Header: 'Quyền',
+                accessor: 'role',
             },
             {
                 Header: 'Thao tác',
@@ -136,8 +129,7 @@ function DeviceStorageDif() {
                             </MDBBtn>
                         ) : (
                             <MDBBtn
-                                className="delete-button handle-button"
-                                color="danger"
+                                className="delete-button disable-btn handle-button"
                                 size="sm"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -153,10 +145,10 @@ function DeviceStorageDif() {
                             size="sm"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                handleUpdate(row.original.serial);
+                                handleUpdate(row.original.doctor_code);
                             }}
                         >
-                            Cập nhật
+                            Thay đổi quyền
                         </MDBBtn>
                     </div>
                 ),
@@ -184,48 +176,15 @@ function DeviceStorageDif() {
 
     return (
         <div className="App py-5">
-            {isUpdateVisible && (
-                <div>
-                    <div
-                        className="update-overlay"
-                        onClick={() => {
-                            setIsUpdateVisible(false);
-                        }}
-                    ></div>
-                    <div className="update-modal">
-                        <div className="container update-wrapper">
-                            <h2>Cập nhật thông tin thiết bị</h2>
-                            <form className="form-box" onSubmit={handleSubmit(onSubmit)}>
-                                <div className="form-group mt-3">
-                                    <label>Serial mới</label>
-                                    <input
-                                        className="form-control mt-1"
-                                        placeholder="Serial mới"
-                                        {...register('newSerial', {
-                                            required: 'Please enter complete information!',
-                                        })}
-                                    />
-                                    {errors.newSerial && <span>{errors.newSerial.message}</span>}
-                                </div>
-                                <div className="d-grid gap-2 mt-4">
-                                    <MDBBtn className="update-button" type="submit">
-                                        Cập nhật
-                                    </MDBBtn>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
             <div className="container">
-                <h1>Danh sách thiết bị trong kho</h1>
+                <h1>Danh sách tài khoản người dùng</h1>
                 <MDBBtn
                     className="update-button"
                     onClick={() => {
-                        nav('/add-device');
+                        nav('/add-account');
                     }}
                 >
-                    Thêm thiết bị
+                    Tạo tài khoản
                 </MDBBtn>
                 <table {...getTableProps()} className="table mt-3">
                     <thead>
@@ -243,7 +202,12 @@ function DeviceStorageDif() {
                         {page.map((row) => {
                             prepareRow(row);
                             return (
-                                <tr {...row.getRowProps()}>
+                                <tr
+                                    {...row.getRowProps()}
+                                    onClick={() => handleRowClick(row)}
+                                    className={selectedIdRecord === row.original.IdRecord ? 'selected-row' : ''}
+                                    {...row.getRowProps()}
+                                >
                                     {row.cells.map((cell) => (
                                         <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                     ))}
@@ -301,4 +265,4 @@ function DeviceStorageDif() {
     );
 }
 
-export default DeviceStorageDif;
+export default AccountController;

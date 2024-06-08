@@ -30,6 +30,7 @@ function PatientDetail() {
     const [historyDetail, setHistoryDetail] = useState([]);
     const [currBedDetail, setCurrBedDetail] = useState({});
     const [currDeviceDetail, setCurrDeviceDetail] = useState({});
+    const [isUpdateVisible, setIsUpdateVisible] = React.useState(false);
     const [status, setStatus] = useState('');
     const [time, setTime] = useState('');
     const {
@@ -41,7 +42,7 @@ function PatientDetail() {
 
     const fetchData = () => {
         httpRequest
-            .get(URL, { withCredentials: true })
+            .get(URL)
             .then((response) => {
                 const data = response.data;
                 console.log('1', data);
@@ -218,7 +219,7 @@ function PatientDetail() {
         const userConfirmed = window.confirm(`Bạn có chắc chắn muốn gỡ thiết bị ${currDeviceDetail.serial} này không?`);
         if (userConfirmed) {
             httpRequest
-                .put(`/device/unuse-device?serial=${currDeviceDetail.serial}`, {}, { withCredentials: true })
+                .put(`/device/unuse-device?serial=${currDeviceDetail.serial}`, {})
                 .then((response) => {
                     fetchData(); // Re-fetch data to update the component
                 })
@@ -228,15 +229,15 @@ function PatientDetail() {
         }
     };
 
+    const handleOnOffDeviceClick = (serial) => {
+        setIsUpdateVisible(true);
+    };
+
     const handleRemoveBedClick = () => {
         const userConfirmed = window.confirm(`Bạn có chắc chắn muốn huỷ giường ${currBedDetail.name} này không?`);
         if (userConfirmed) {
             httpRequest
-                .put(
-                    `/bed/unusage-bed?bed=${currBedDetail.name}&room=${currBedDetail.Room.name}`,
-                    {},
-                    { withCredentials: true },
-                )
+                .put(`/bed/unusage-bed?bed=${currBedDetail.name}&room=${currBedDetail.Room.name}`, {})
                 .then((response) => {
                     fetchData(); // Re-fetch data to update the component
                 })
@@ -253,12 +254,12 @@ function PatientDetail() {
         const userConfirmed = window.confirm(`Xác nhận xuất viện?`);
         if (userConfirmed) {
             httpRequest
-                .put(`/record/leave?id=${idRecord}`, {}, { withCredentials: true })
+                .put(`/record/leave?id=${idRecord}`, {})
                 .then((response) => {
                     fetchData(); // Re-fetch data to update the component
                 })
                 .catch((error) => {
-                    console.error('Error removing device:', error);
+                    alert('Cần huỷ giường và thiết bị trước');
                 });
         }
     };
@@ -271,7 +272,7 @@ function PatientDetail() {
         };
 
         httpRequest
-            .post(URL_NOTE, noteData, { withCredentials: true })
+            .post(URL_NOTE, noteData)
             .then((response) => {
                 fetchData();
                 reset();
@@ -281,9 +282,67 @@ function PatientDetail() {
             });
     };
 
+    const handleOn = () => {
+        httpRequest
+            .post(`/device/on-off?device=${currDeviceDetail.serial}&control=on`, {})
+            .then((response) => {
+                alert('Bật thiết bị thành công');
+                fetchData();
+                setIsUpdateVisible(false);
+            })
+            .catch((error) => {
+                console.error('Error creating note:', error);
+            });
+    };
+
+    const handleOff = () => {
+        httpRequest
+            .post(`/device/on-off?device=${currDeviceDetail.serial}&control=off`, {})
+            .then((response) => {
+                alert('Tắt thiết bị thành công');
+                fetchData();
+                setIsUpdateVisible(false);
+            })
+            .catch((error) => {
+                console.error('Error creating note:', error);
+            });
+    };
+
     return (
         <div className="App py-5">
             <div className="container">
+                {isUpdateVisible && (
+                    <div>
+                        <div
+                            className="update-overlay"
+                            onClick={() => {
+                                setIsUpdateVisible(false);
+                            }}
+                        ></div>
+                        <div className="update-modal-small">
+                            <div className="container update-wrapper">
+                                <div className="onoff-wrap">
+                                    <MDBBtn
+                                        onClick={() => {
+                                            handleOn();
+                                        }}
+                                        className="btn-onoff"
+                                    >
+                                        Bật thiết bị
+                                    </MDBBtn>
+                                    <MDBBtn
+                                        onClick={() => {
+                                            handleOff();
+                                        }}
+                                        className="btn-onoff"
+                                    >
+                                        Tắt thiết bị
+                                    </MDBBtn>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <h1>
                     {' '}
                     Thông tin bệnh nhân (Giường {currBedDetail?.name} - Phòng {currBedDetail.Room?.name}){' '}
@@ -292,7 +351,14 @@ function PatientDetail() {
                     <div className="col-md-8"></div>
 
                     <div className="option-rc col-md-4">
-                        <h3 className="device-option-button">
+                        <h3
+                            className={`device-option-button  ${
+                                Object.keys(currDeviceDetail).length !== 0 &&
+                                currDeviceDetail.id !== `00000000-0000-0000-0000-000000000000`
+                                    ? 'disabled'
+                                    : ''
+                            }`}
+                        >
                             {Object.keys(currBedDetail).length !== 0 &&
                             currBedDetail.id !== `00000000-0000-0000-0000-000000000000` ? (
                                 <div onClick={handleRemoveBedClick}>Huỷ giường</div>
@@ -365,18 +431,33 @@ function PatientDetail() {
                     ) : (
                         <p>N/A</p>
                     )}
-                    <div className="device-option-button">
+                    <div
+                        className={`device-option-button ${
+                            Object.keys(currBedDetail).length === 0 ||
+                            currBedDetail.id === `00000000-0000-0000-0000-000000000000`
+                                ? 'disabled'
+                                : ''
+                        }`}
+                    >
                         {Object.keys(currDeviceDetail).length === 0 ||
-                        currDeviceDetail.id === `00000000-0000-0000-0000-000000000000` ? (
-                            <div
+                        currDeviceDetail.id === '00000000-0000-0000-0000-000000000000' ? (
+                            <button
+                                className={`toggle-device `}
                                 onClick={() => {
                                     navigate(`/storage?patient=${patientDetail.patient_code}&id=${idRecord}`);
                                 }}
                             >
                                 Thêm thiết bị
-                            </div>
+                            </button>
                         ) : (
-                            <div onClick={handleRemoveDeviceClick}>Gỡ thiết bị</div>
+                            <div className="d-flex">
+                                <div className="remove-device" onClick={handleRemoveDeviceClick}>
+                                    Gỡ thiết bị
+                                </div>
+                                <div className="toggle-device ml-3" onClick={handleOnOffDeviceClick}>
+                                    Bật/Tắt thiết bị
+                                </div>
+                            </div>
                         )}
                     </div>
                 </h3>

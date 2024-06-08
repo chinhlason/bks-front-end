@@ -20,7 +20,7 @@ function AddBed() {
     // Fetch room data from the API
     useEffect(() => {
         httpRequest
-            .get('/room/get-all', { withCredentials: true })
+            .get('/room/get-all')
             .then((response) => {
                 setRooms(response.data);
             })
@@ -50,7 +50,7 @@ function AddBed() {
             const confirmSend = window.confirm('Bạn có chắc chắn muốn gửi dữ liệu đã tải lên không?');
             if (confirmSend) {
                 httpRequest
-                    .post('/bed/insert', parsedJson, { withCredentials: true })
+                    .post('/bed/insert', parsedJson)
                     .then((response) => {
                         console.log('Devices added from file:', response.data);
                         alert('Thêm giường thành công');
@@ -75,7 +75,7 @@ function AddBed() {
         ];
 
         httpRequest
-            .post('/bed/insert', requestBody, { withCredentials: true })
+            .post('/bed/insert', requestBody)
             .then((response) => {
                 console.log('Device added:', response.data);
                 alert('Thêm giường thành công');

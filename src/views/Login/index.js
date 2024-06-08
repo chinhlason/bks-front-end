@@ -5,8 +5,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import httpRequest from '~/utils/htppRequest';
-
-const LOGIN_URL = 'http://localhost:8081/login';
+const LOGIN_URL = 'http://13.239.21.34:8081/login';
 
 function Login() {
     const {
@@ -16,18 +15,33 @@ function Login() {
     } = useForm();
     const navigate = useNavigate();
 
+    // Điều chỉnh đường dẫn tới module httpRequest của bạn
+
+    const LOGIN_URL = '/login'; // Thay thế bằng URL đăng nhập thực tế của bạn
+
     const onSubmit = async (data) => {
         try {
             const { username, password } = data; // Lấy thông tin tài khoản và mật khẩu từ form
             const requestData = { DoctorCode: username, Password: password }; // Định dạng dữ liệu gửi đi
 
-            httpRequest
-                .post(LOGIN_URL, requestData, { withCredentials: true }) // Gửi yêu cầu POST với dữ liệu đã được định dạng
-                .then((response) => {
-                    console.log(response);
-                    localStorage.setItem('DoctorCode', requestData.DoctorCode);
-                    navigate('/mainpage');
-                });
+            const response = await httpRequest.post(LOGIN_URL, requestData); // Gửi yêu cầu POST với dữ liệu đã được định dạng
+
+            // Lưu trữ AccessToken và RefreshToken vào cookie
+            const { AccessToken, RefreshToken, User } = response.data;
+            Cookies.set('jwt', AccessToken, { expires: 7 }); // RefreshToken có hạn sử dụng 7 ngày
+            Cookies.set('refresh-token', RefreshToken, { expires: 7 }); // RefreshToken có hạn sử dụng 7 ngày
+
+            // Lưu trữ thông tin người dùng vào localStorage
+            localStorage.setItem('DoctorCode', User.doctor_code);
+            localStorage.setItem('Role', User.role);
+            localStorage.setItem('Fullname', User.fullname);
+
+            // Điều hướng dựa trên vai trò của người dùng
+            if (User.role === 'DOCTOR') {
+                navigate('/mainpage');
+            } else {
+                navigate('/mainpage-admin');
+            }
         } catch (error) {
             console.error('Login failed:', error);
             alert('Login failed. Please check your credentials and try again.');
@@ -71,11 +85,15 @@ function Login() {
                             </div>
                         </form>
                         <div className="option-text d-flex mt-3">
+                            <p></p>
                             <p className="text-right">
-                                <a href="#">Quên mật khẩu?</a>
-                            </p>
-                            <p className="text-right">
-                                <a href="/register">Đăng ký!</a>
+                                <div
+                                    onClick={() => {
+                                        navigate('/forgot-password');
+                                    }}
+                                >
+                                    Quên mật khẩu?
+                                </div>
                             </p>
                         </div>
                     </div>

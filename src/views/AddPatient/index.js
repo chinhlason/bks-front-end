@@ -1,11 +1,11 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import httpRequest from '~/util/httpRequest';
 import './AddPatient.scss';
 
-const LOGIN_URL = 'http://localhost:8081/record/create';
-
+const LOGIN_URL = '/record/create';
+const doctorCode = localStorage.getItem('DoctorCode');
 function AddPatient() {
     const {
         register,
@@ -17,7 +17,7 @@ function AddPatient() {
     const onSubmit = async (data) => {
         try {
             const requestData = {
-                DoctorCode: 'Sonnvt2',
+                DoctorCode: doctorCode,
                 Fullname: data.fullname,
                 Ccid: data.ccid,
                 Address: data.address,
@@ -29,14 +29,12 @@ function AddPatient() {
                 Reason: data.reason,
             };
 
-            const response = await axios.post(LOGIN_URL, requestData, { withCredentials: true });
+            const response = await httpRequest.post(LOGIN_URL, requestData);
 
-            console.log(response);
-            localStorage.setItem('DoctorCode', requestData.DoctorCode);
             navigate('/pending-record'); // Điều hướng trở lại trang trước đó
         } catch (error) {
             console.error('Login failed:', error);
-            alert('Login failed. Please check your credentials and try again.');
+            alert(error);
         }
     };
 

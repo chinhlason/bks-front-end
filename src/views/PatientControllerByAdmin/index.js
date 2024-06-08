@@ -1,15 +1,14 @@
-import './DeviceStorage.scss';
 import * as React from 'react';
 import { useTable, usePagination } from 'react-table';
-import { MDBBtn } from 'mdb-react-ui-kit';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import httpRequest from '~/util/httpRequest';
 import moment from 'moment';
+import { MDBInputGroup, MDBInput, MDBIcon, MDBBtn } from 'mdb-react-ui-kit';
 
-function DeviceStorage() {
+function PatientControllerByAdmin() {
     const {
         register,
         handleSubmit,
@@ -17,6 +16,8 @@ function DeviceStorage() {
     } = useForm();
     const navigate = useNavigate();
     const [devices, setDevices] = React.useState([]);
+    const [searchValue, setSearchValue] = React.useState('');
+    const [isSearching, setIsSearching] = React.useState(false);
     const queryParameters = new URLSearchParams(window.location.search);
     const patient = queryParameters.get('patient');
     const id = queryParameters.get('id');
@@ -24,23 +25,88 @@ function DeviceStorage() {
 
     const fetchData = () => {
         httpRequest
-            .get('/device/get-by-option?value=IN_STORAGE&option=status')
+            .get('/record/get-all-total-admin')
             .then((response) => {
-                console.log(response.data);
-                if (response.data == null) {
-                    setDevices([]);
-                } else {
-                    setDevices(response.data);
-                }
+                const sortedData = response.data.sort((a, b) => {
+                    const nameA = a.Fullname.toUpperCase(); // Chuyển tên thành chữ hoa để so sánh
+                    const nameB = b.Fullname.toUpperCase();
+
+                    if (nameA < nameB) {
+                        return -1;
+                    }
+                    if (nameA > nameB) {
+                        return 1;
+                    }
+                    return 0;
+                });
+
+                setDevices(sortedData);
             })
             .catch((error) => {
                 console.error('Error fetching data:', error);
+                setDevices([]);
+            });
+    };
+
+    const fetchSearchResults = (value) => {
+        setIsSearching(true);
+        httpRequest
+            .get(`/record/search-admin?q=${value}`)
+            .then((response) => {
+                const sortedData = response.data.sort((a, b) => {
+                    const nameA = a.Fullname.toUpperCase();
+                    const nameB = b.Fullname.toUpperCase();
+
+                    if (nameA < nameB) {
+                        return -1;
+                    }
+                    if (nameA > nameB) {
+                        return 1;
+                    }
+                    return 0;
+                });
+
+                setDevices(sortedData);
+                setIsSearching(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching search results:', error);
+                setDevices([]);
+                setIsSearching(false);
             });
     };
 
     React.useEffect(() => {
         fetchData();
     }, []);
+
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func(...args);
+            }, delay);
+        };
+    };
+
+    const debouncedFetchSearchResults = React.useCallback(debounce(fetchSearchResults, 1000), []);
+
+    React.useEffect(() => {
+        if (searchValue) {
+            debouncedFetchSearchResults(searchValue);
+        } else {
+            fetchData();
+        }
+    }, [searchValue]);
+
+    const handleSearchChange = (e) => {
+        setSearchValue(e.target.value);
+    };
+
+    const handleSearchClick = () => {
+        fetchSearchResults(searchValue);
+    };
 
     const data = React.useMemo(() => devices, [devices]);
     const columns = React.useMemo(
@@ -50,21 +116,28 @@ function DeviceStorage() {
                 Cell: ({ row }) => row.index + 1,
             },
             {
-                Header: 'Serial',
-                accessor: 'serial',
+                Header: 'Mã bệnh nhân',
+                accessor: 'PatientCode',
             },
             {
-                Header: 'Ngày nhập',
-                accessor: 'create_at',
-                Cell: ({ value }) => moment(value).format('DD-MM-YYYY HH:mm:ss'),
+                Header: 'Tên bệnh nhân',
+                accessor: 'Fullname',
             },
             {
-                Header: 'Thời gian bảo hành (tháng)',
-                accessor: 'warraty',
+                Header: 'Địa chỉ',
+                accessor: 'Address',
+            },
+            {
+                Header: 'Liên lạc',
+                accessor: 'Phone',
             },
             {
                 Header: 'Trạng thái',
-                accessor: 'status',
+                accessor: 'Status',
+            },
+            {
+                Header: 'Thông tin thêm',
+                accessor: 'More',
             },
         ],
         [],
@@ -94,33 +167,27 @@ function DeviceStorage() {
         usePagination,
     );
 
-    const handleChooseDevice = (serial) => {
-        const userConfirmed = window.confirm(`Xác nhận chọn thiết bị ${serial} ?`);
-        if (userConfirmed) {
-            const requestBody = {
-                PatientCode: patient,
-                Serial: serial,
-            };
-
-            httpRequest
-                .post('/device/use-device', requestBody)
-                .then((response) => {
-                    console.log(response.data);
-                    nav(`/patient?id=${id}`);
-                })
-                .catch((error) => {
-                    console.error('Error posting data:', error);
-                });
-        }
+    const handleChooseRow = (id) => {
+        nav(`/patient?id=${id}`);
     };
 
     return (
         <div className="App py-5">
             <div className="container">
-                <h1>Danh sách thiết bị trong kho</h1>
-
-                {devices.length === 0 ? (
-                    <div className="no-devices">Không có thiết bị trong kho</div>
+                <h1>Danh sách bệnh nhân thuộc quản lý của bác sĩ</h1>
+                <MDBInputGroup className="mt-3 mb-3">
+                    <MDBInput
+                        id="search"
+                        label="Tìm kiếm bệnh nhân"
+                        value={searchValue}
+                        onChange={handleSearchChange}
+                    />
+                    <MDBBtn rippleColor="dark" onClick={handleSearchClick}>
+                        <MDBIcon icon="search" />
+                    </MDBBtn>
+                </MDBInputGroup>
+                {isSearching ? (
+                    <p>Đang tìm kiếm...</p>
                 ) : (
                     <>
                         <table {...getTableProps()} className="table mt-3">
@@ -139,7 +206,7 @@ function DeviceStorage() {
                                     return (
                                         <tr
                                             {...row.getRowProps()}
-                                            onClick={() => handleChooseDevice(row.original.serial)}
+                                            onClick={() => handleChooseRow(row.original.Id)}
                                             style={{ cursor: 'pointer' }}
                                         >
                                             {row.cells.map((cell) => (
@@ -203,4 +270,4 @@ function DeviceStorage() {
     );
 }
 
-export default DeviceStorage;
+export default PatientControllerByAdmin;

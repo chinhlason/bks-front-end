@@ -25,7 +25,7 @@ function PatientController() {
 
     const fetchData = () => {
         httpRequest
-            .get('/record/get-all-total', { withCredentials: true })
+            .get('/record/get-all-total')
             .then((response) => {
                 const sortedData = response.data.sort((a, b) => {
                     const nameA = a.Fullname.toUpperCase(); // Chuyển tên thành chữ hoa để so sánh
@@ -51,7 +51,7 @@ function PatientController() {
     const fetchSearchResults = (value) => {
         setIsSearching(true);
         httpRequest
-            .get(`/record/search?q=${value}`, { withCredentials: true })
+            .get(`/record/search?q=${value}`)
             .then((response) => {
                 const sortedData = response.data.sort((a, b) => {
                     const nameA = a.Fullname.toUpperCase();

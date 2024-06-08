@@ -14,22 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 
 function Header() {
-    return (
-        <>
-            <a
-                className="btndropdown-toggle  bell d-flex"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-            >
-                <Col xs="auto">
-                    <FontAwesomeIcon icon={faBell} />
-                </Col>
-            </a>
-            <ul className="dropdown-menu dropdown-menu-end">Sex</ul>
-        </>
-    );
+    return <></>;
 }
 
 export default Header;

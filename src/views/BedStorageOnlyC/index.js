@@ -26,7 +26,7 @@ function BedStorageOnlyC() {
     const nav = useNavigate();
     const fetchData = () => {
         httpRequest
-            .get('/bed/storage', { withCredentials: true })
+            .get('/bed/storage')
             .then((response) => {
                 console.log(response.data);
                 const sortedData = response.data.sort((a, b) => {
@@ -119,7 +119,7 @@ function BedStorageOnlyC() {
         const userConfirmed = window.confirm(`Bạn có chắc chắn muốn vô hiệu hoá giường ${name} này không?`);
         if (userConfirmed) {
             httpRequest
-                .put(`/bed/disable?bed=${id}`, {}, { withCredentials: true })
+                .put(`/bed/disable?bed=${id}`, {})
                 .then((response) => {
                     console.log('Device disabled:', response.data);
                     fetchData();
@@ -134,7 +134,7 @@ function BedStorageOnlyC() {
         const userConfirmed = window.confirm(`Bạn có chắc chắn muốn kích hoạt thiết bị ${name} này không?`);
         if (userConfirmed) {
             httpRequest
-                .put(`/bed/enable?bed=${id}`, {}, { withCredentials: true })
+                .put(`/bed/enable?bed=${id}`, {})
                 .then((response) => {
                     console.log('Device activated:', response.data);
                     fetchData();
@@ -160,7 +160,7 @@ function BedStorageOnlyC() {
         };
         console.log(dataReq);
         httpRequest
-            .put(`/bed/update`, dataReq, { withCredentials: true })
+            .put(`/bed/update`, dataReq)
             .then((response) => {
                 console.log('Device updated:', response.data);
                 setIsUpdateVisible(false);

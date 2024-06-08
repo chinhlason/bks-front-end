@@ -36,7 +36,6 @@
 
 .avatar {
     height: 6.5rem;
-    border-radius: 50%;
 }
 
 .signout-button {
@@ -49,3 +48,7 @@
     color: black; /* Màu văn bản của nút "Đăng xuất" */
     cursor: pointer; /* Biến con trỏ thành dấu nhấp chuột khi di chuột qua nút "Đăng xuất" */
 }
+
+// .disable-btn {
+//     background-color: red !important;
+// }

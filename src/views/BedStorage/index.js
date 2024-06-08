@@ -24,7 +24,7 @@ function BedStorage() {
     const nav = useNavigate();
     const fetchData = () => {
         httpRequest
-            .get('/bed/get-available', { withCredentials: true })
+            .get('/bed/get-available')
             .then((response) => {
                 const sortedData = response.data.sort((a, b) => {
                     if (a.Room.name < b.Room.name) return -1;
@@ -100,7 +100,7 @@ function BedStorage() {
                 };
 
                 httpRequest
-                    .post('/bed/usage-bed', requestBody, { withCredentials: true })
+                    .post('/bed/usage-bed', requestBody)
                     .then((response) => {
                         console.log(response.data);
                         nav(`/patient?id=${id}`);

@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import httpRequest from '~/util/httpRequest';
 import { MDBBtn } from 'mdb-react-ui-kit';
-import PNGTest from '~/assets/img/test.png';
-function AddDevice() {
+import PNGTest from '~/assets/img/doctor.png';
+function AddAccount() {
     const {
         register,
         handleSubmit,
@@ -16,27 +16,42 @@ function AddDevice() {
     } = useForm();
     const navigate = useNavigate();
     const [isUpdateVisible, setIsUpdateVisible] = React.useState(false);
+    const [doctors, setDoctors] = useState([]);
+
+    useEffect(() => {
+        httpRequest
+            .get('/user/get-all-doctors')
+            .then((response) => {
+                setDoctors(response.data);
+                console.log(response.data);
+            })
+            .catch((error) => {
+                console.error('Error fetching rooms:', error);
+            });
+    }, []);
 
     const onSubmit = (data) => {
         // Tạo đối tượng request body từ dữ liệu form
 
         const requestBody = [
             {
-                Serial: data.serial,
-                Warraty: parseInt(data.warraty),
+                DoctorCode: data.doctorCode,
+                Fullname: data.fullname,
+                Password: data.password,
+                Email: data.email,
+                Phone: data.phone,
             },
         ];
-
+        console.log(data);
         httpRequest
-            .post('/device/add', requestBody)
+            .post('/register-list', requestBody)
             .then((response) => {
-                console.log('Device added:', response.data);
-                alert('Thêm thiết bị thành công');
+                alert('Thêm tài khoản thành công');
                 reset();
             })
             .catch((error) => {
                 console.error('Error adding device:', error);
-                alert('Trùng thông tin thiết bị');
+                alert('Trùng thông tin tài khoản');
             });
     };
 
@@ -58,21 +73,20 @@ function AddDevice() {
             // Chuyển đổi trường Warranty từ chuỗi sang số nguyên
             const parsedJson = json.map((item) => ({
                 ...item,
-                Warraty: parseInt(item.Warraty), // Chuyển đổi chuỗi sang số nguyên
             }));
 
             // Xác nhận gửi sau khi chuyển đổi thành công
             const confirmSend = window.confirm('Bạn có chắc chắn muốn gửi dữ liệu đã tải lên không?');
             if (confirmSend) {
                 httpRequest
-                    .post('/device/add', parsedJson)
+                    .post('/register-list', parsedJson)
                     .then((response) => {
                         console.log('Devices added from file:', response.data);
-                        alert('Thêm thiết bị thành công');
+                        alert('Thêm thông tin tài khoản thành công');
                     })
                     .catch((error) => {
                         console.error('Error adding devices from file:', error);
-                        alert('Trùng thông tin thiết bị');
+                        alert('Trùng thông tin tài khoản');
                     });
             }
         };
@@ -102,41 +116,78 @@ function AddDevice() {
                         </div>
                     </div>
                 )}
-                <h1>Thêm thông tin thiết bị</h1>
+                <h1>Thêm thông tin tài khoản</h1>
                 <div className="row">
                     <form className="form-box mt-3 col-md-8" onSubmit={handleSubmit(onSubmit)}>
                         <div className="row">
-                            <div className="col-md-4">Serial thiết bị</div>
+                            <div className="col-md-4">Mã bác sĩ</div>
                             <div className="col-md-8">
                                 <input
                                     className="form-control mt-1"
-                                    {...register('serial', {
+                                    {...register('doctorCode', {
                                         required: 'Vui lòng nhập thông tin!',
                                     })}
                                 />
-                                {errors.serial && <span>{errors.serial.message}</span>}
+                                {errors.doctorCode && <span>{errors.doctorCode.message}</span>}
                             </div>
                         </div>
                         <div className="row">
-                            <div className="col-md-4">Thời gian bảo hành</div>
+                            <div className="col-md-4">Họ tên bác sĩ</div>
                             <div className="col-md-8">
                                 <input
                                     className="form-control mt-1"
-                                    {...register('warraty', {
+                                    {...register('fullname', {
                                         required: 'Vui lòng nhập thông tin!',
                                     })}
                                 />
-                                {errors.warraty && <span>{errors.warraty.message}</span>}
+                                {errors.fullname && <span>{errors.fullname.message}</span>}
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="col-md-4">Mật khẩu</div>
+                            <div className="col-md-8">
+                                <input
+                                    className="form-control mt-1"
+                                    type="password"
+                                    {...register('password', {
+                                        required: 'Vui lòng nhập thông tin!',
+                                    })}
+                                />
+                                {errors.password && <span>{errors.password.message}</span>}
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="col-md-4">Email</div>
+                            <div className="col-md-8">
+                                <input
+                                    className="form-control mt-1"
+                                    {...register('email', {
+                                        required: 'Vui lòng nhập thông tin!',
+                                    })}
+                                />
+                                {errors.email && <span>{errors.email.message}</span>}
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="col-md-4">Số điện thoại</div>
+                            <div className="col-md-8">
+                                <input
+                                    className="form-control mt-1"
+                                    {...register('phone', {
+                                        required: 'Vui lòng nhập thông tin!',
+                                    })}
+                                />
+                                {errors.phone && <span>{errors.phone.message}</span>}
                             </div>
                         </div>
                         <div className="d-grid gap-2 mt-3">
                             <button type="submit" className="btn btn-primary">
-                                Thêm thiết bị
+                                Thêm tài khoản
                             </button>
                         </div>
                     </form>
                     <button onClick={handleUpdate} className="btn btn-primary col-md-4">
-                        Nhập thiết bị theo file
+                        Tạo tài khoản theo file theo file
                     </button>
                 </div>
             </div>
@@ -144,4 +195,4 @@ function AddDevice() {
     );
 }
 
-export default AddDevice;
+export default AddAccount;

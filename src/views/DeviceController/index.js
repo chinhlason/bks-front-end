@@ -1,5 +1,4 @@
 import './DeviceController.scss';
-import fakeData from './MOCK_DATA.json';
 import * as React from 'react';
 import { useTable } from 'react-table';
 import { MDBBtn } from 'mdb-react-ui-kit';
@@ -17,7 +16,7 @@ function DeviceController() {
     const navigate = useNavigate();
     const [isUpdateVisible, setIsUpdateVisible] = React.useState(false);
 
-    const data = React.useMemo(() => fakeData, []);
+    const data = React.useMemo(() => []);
     const columns = React.useMemo(
         () => [
             {
@@ -56,7 +55,7 @@ function DeviceController() {
                             Cập nhật
                         </MDBBtn>
                         <MDBBtn
-                            className="delete-button handle-button"
+                            className="delete-button handle-button btn"
                             color="danger"
                             size="sm"
                             onClick={(e) => {

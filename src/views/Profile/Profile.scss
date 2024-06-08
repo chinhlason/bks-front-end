@@ -15,8 +15,7 @@
     .avatar {
         height: 100%;
         width: 50%;
-        border-radius: 50%;
-        border: 2px black solid;
+        // border: 2px black solid;
     }
 }
 
@@ -26,4 +25,22 @@
     border-radius: 5px;
     // background-color: var(--default-background-header-color-dark);
     margin: 0 0.2rem;
+}
+
+.btn-edit-prf {
+    color: white !important;
+    width: 50%;
+}
+
+.button-prf {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.form-prf {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 1.2rem !important;
 }

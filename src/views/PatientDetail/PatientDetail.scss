@@ -60,3 +60,32 @@ li {
 .option-box div {
     margin: 5px 0; /* Khoảng cách giữa các phần tử */
 }
+.device-option-button {
+    .add-device,
+    .remove-device,
+    .toggle-device {
+        cursor: pointer;
+        padding: 10px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .add-device:hover {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+
+    .remove-device:hover {
+        background-color: #ffcccc;
+        color: #ff0000;
+    }
+
+    .toggle-device:hover {
+        background-color: #ccffcc;
+        color: #00ff00;
+    }
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.3; /* Hoặc bất kỳ giá trị nào bạn muốn */
+}

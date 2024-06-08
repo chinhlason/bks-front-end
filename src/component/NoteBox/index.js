@@ -20,7 +20,7 @@ const NoteBox = ({ noteDetail, onDelete }) => {
         };
 
         httpRequest
-            .put(`/note/update`, updatedNote, { withCredentials: true })
+            .put(`/note/update`, updatedNote)
             .then((response) => {
                 const updatedNotes = [...noteDetail];
                 updatedNotes[index].content = editContent;
@@ -41,7 +41,7 @@ const NoteBox = ({ noteDetail, onDelete }) => {
     const handleDeleteClick = (index) => {
         const id = noteDetail[index].id;
         httpRequest
-            .delete(`/note/delete?id=${id}`, { withCredentials: true })
+            .delete(`/note/delete?id=${id}`)
             .then((response) => {
                 onDelete(); // Call the onDelete function passed from the parent component
             })

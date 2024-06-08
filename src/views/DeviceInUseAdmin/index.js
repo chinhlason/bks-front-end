@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import httpRequest from '~/util/httpRequest';
 import moment from 'moment';
 
-function DeviceInUse() {
+function DeviceInUseAdmin() {
     const navigate = useNavigate();
     const queryParameters = new URLSearchParams(window.location.search);
     const roomName = queryParameters.get('name');
@@ -15,7 +15,7 @@ function DeviceInUse() {
     const [maxPage, setMaxPage] = React.useState(1); // State to track the total number of pages
 
     const fetchRoomDetails = React.useCallback(() => {
-        const URL = `/device/get-in-use`;
+        const URL = `/device/get-in-use-admin`;
         httpRequest
             .get(URL)
             .then((response) => {
@@ -174,4 +174,4 @@ function DeviceInUse() {
     );
 }
 
-export default DeviceInUse;
+export default DeviceInUseAdmin;

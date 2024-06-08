@@ -1,70 +1,107 @@
-import './DeviceStorage.scss';
-import * as React from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTable, usePagination } from 'react-table';
-import { MDBBtn } from 'mdb-react-ui-kit';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import axios from 'axios';
 import httpRequest from '~/util/httpRequest';
-import moment from 'moment';
+import { MDBBtn } from 'mdb-react-ui-kit';
 
-function DeviceStorage() {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm();
+function HomeAdmin() {
+    const [rooms, setRooms] = useState([]);
+    const [searchValue, setSearchValue] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
     const navigate = useNavigate();
-    const [devices, setDevices] = React.useState([]);
-    const queryParameters = new URLSearchParams(window.location.search);
-    const patient = queryParameters.get('patient');
-    const id = queryParameters.get('id');
-    const nav = useNavigate();
 
     const fetchData = () => {
         httpRequest
-            .get('/device/get-by-option?value=IN_STORAGE&option=status')
+            .get('/room/get-all-by-admin')
             .then((response) => {
-                console.log(response.data);
-                if (response.data == null) {
-                    setDevices([]);
-                } else {
-                    setDevices(response.data);
+                if (response.data == null || response.data.length === 0) {
+                    console.log('No data received');
+                    return;
                 }
+                const sortedRooms = response.data.sort((a, b) => a.name.localeCompare(b.name));
+                setRooms(sortedRooms);
             })
             .catch((error) => {
-                console.error('Error fetching data:', error);
+                console.error('Error fetching rooms:', error);
             });
     };
 
-    React.useEffect(() => {
+    const fetchSearchResults = (value) => {
+        setIsSearching(true);
+        httpRequest
+            .get(`/room/search-admin?q=${value}`)
+            .then((response) => {
+                const sortedRooms = response.data.sort((a, b) => a.name.localeCompare(b.name));
+                setRooms(sortedRooms);
+                setIsSearching(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching search results:', error);
+                setRooms([]);
+                setIsSearching(false);
+            });
+    };
+
+    useEffect(() => {
         fetchData();
     }, []);
 
-    const data = React.useMemo(() => devices, [devices]);
-    const columns = React.useMemo(
+    const debounce = (func, delay) => {
+        let timeoutId;
+        return (...args) => {
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                func(...args);
+            }, delay);
+        };
+    };
+
+    const debouncedFetchSearchResults = useCallback(debounce(fetchSearchResults, 1000), []);
+
+    useEffect(() => {
+        if (searchValue) {
+            debouncedFetchSearchResults(searchValue);
+        } else {
+            fetchData();
+        }
+    }, [searchValue]);
+
+    const handleSearchChange = (e) => {
+        setSearchValue(e.target.value);
+    };
+
+    const handleSearchClick = () => {
+        fetchSearchResults(searchValue);
+    };
+
+    const data = useMemo(() => rooms, [rooms]);
+    const columns = useMemo(
         () => [
             {
-                Header: 'STT',
-                Cell: ({ row }) => row.index + 1,
+                Header: 'Tên phòng',
+                accessor: 'name',
             },
             {
-                Header: 'Serial',
-                accessor: 'serial',
+                Header: 'Bác sĩ phụ trách',
+                accessor: 'Doctor',
+                Cell: ({ cell: { value } }) => `${value.doctor_code} - ${value.fullname}`,
             },
             {
-                Header: 'Ngày nhập',
-                accessor: 'create_at',
-                Cell: ({ value }) => moment(value).format('DD-MM-YYYY HH:mm:ss'),
+                Header: 'Số lượng bệnh nhân',
+                accessor: 'patient_number',
             },
             {
-                Header: 'Thời gian bảo hành (tháng)',
-                accessor: 'warraty',
+                Header: 'Số lượng giường bệnh',
+                accessor: 'bed_number',
             },
             {
-                Header: 'Trạng thái',
-                accessor: 'status',
+                Header: 'Hành động',
+                Cell: ({ row }) => (
+                    <button onClick={() => handleRoomDetail(row.original.name)} className="btn btn-primary">
+                        Xem chi tiết
+                    </button>
+                ),
             },
         ],
         [],
@@ -89,38 +126,25 @@ function DeviceStorage() {
         {
             columns,
             data,
-            initialState: { pageIndex: 0, pageSize: 10 }, // Start with page index 0 and page size of 10
+            initialState: { pageIndex: 0, pageSize: 5 }, // Start with page index 0 and page size of 6
         },
         usePagination,
     );
 
-    const handleChooseDevice = (serial) => {
-        const userConfirmed = window.confirm(`Xác nhận chọn thiết bị ${serial} ?`);
-        if (userConfirmed) {
-            const requestBody = {
-                PatientCode: patient,
-                Serial: serial,
-            };
-
-            httpRequest
-                .post('/device/use-device', requestBody)
-                .then((response) => {
-                    console.log(response.data);
-                    nav(`/patient?id=${id}`);
-                })
-                .catch((error) => {
-                    console.error('Error posting data:', error);
-                });
-        }
+    const handleRoomDetail = (roomName) => {
+        navigate(`/room-admin?name=${roomName}`);
     };
 
     return (
-        <div className="App py-5">
-            <div className="container">
-                <h1>Danh sách thiết bị trong kho</h1>
+        <div className="container">
+            <div className="row py-5">
+                <h1>Danh sách phòng bệnh ({rooms.length})</h1>
+                <MDBBtn onClick={() => navigate('/add-room')} className="btn btn-primary mt-3 col-md-3 ">
+                    Thêm phòng bệnh
+                </MDBBtn>
 
-                {devices.length === 0 ? (
-                    <div className="no-devices">Không có thiết bị trong kho</div>
+                {isSearching ? (
+                    <p>Đang tìm kiếm...</p>
                 ) : (
                     <>
                         <table {...getTableProps()} className="table mt-3">
@@ -137,11 +161,7 @@ function DeviceStorage() {
                                 {page.map((row) => {
                                     prepareRow(row);
                                     return (
-                                        <tr
-                                            {...row.getRowProps()}
-                                            onClick={() => handleChooseDevice(row.original.serial)}
-                                            style={{ cursor: 'pointer' }}
-                                        >
+                                        <tr {...row.getRowProps()} style={{ cursor: 'pointer' }}>
                                             {row.cells.map((cell) => (
                                                 <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                             ))}
@@ -183,12 +203,7 @@ function DeviceStorage() {
                                     style={{ width: '100px' }}
                                 />
                             </span>{' '}
-                            <select
-                                value={pageSize}
-                                onChange={(e) => {
-                                    setPageSize(Number(e.target.value));
-                                }}
-                            >
+                            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
                                 {[5, 10, 20, 30, 40].map((pageSize) => (
                                     <option key={pageSize} value={pageSize}>
                                         Hiển thị {pageSize}
@@ -203,4 +218,4 @@ function DeviceStorage() {
     );
 }
 
-export default DeviceStorage;
+export default HomeAdmin;

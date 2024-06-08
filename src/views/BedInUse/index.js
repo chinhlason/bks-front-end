@@ -17,7 +17,7 @@ function BedInUse() {
     const fetchRoomDetails = React.useCallback(() => {
         const URL = `/bed/get-used-bed`;
         httpRequest
-            .get(URL, { withCredentials: true })
+            .get(URL)
             .then((response) => {
                 const sortedData = response.data.sort((a, b) => {
                     // So sánh tên phòng

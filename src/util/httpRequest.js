@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+const url = process.env.REACT_APP_BACKEND_URL;
 const httpRequest = axios.create({
-    baseURL: 'http://localhost:8081/', // Thay bằng URL API của bạn
+    baseURL: 'http://13.239.21.34:8081', // Thay bằng URL API của bạn
     headers: {
         'Content-Type': 'application/json',
     },
@@ -27,22 +28,26 @@ httpRequest.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             const refreshToken = Cookies.get('refresh-token');
             if (refreshToken) {
                 try {
-                    const response = await httpRequest.post('/user/refresh-token', { token: refreshToken });
-                    const { accessToken } = response.data.Data;
-                    Cookies.set('accessToken', accessToken);
-                    httpRequest.defaults.headers['Authorization'] = 'Bearer ' + accessToken;
-                    originalRequest.headers['Authorization'] = 'Bearer ' + accessToken;
+                    const response = await httpRequest.post(
+                        `/refresh-token?refresh-token=${refreshToken}`,
+                        { token: refreshToken },
+                        { withCredentials: true },
+                    );
+                    const { AccessToken } = response.data.Data;
+                    Cookies.set('jwt', response.data.Data, { expires: 7 });
+                    httpRequest.defaults.headers['Authorization'] = 'Bearer ' + AccessToken;
+                    originalRequest.headers['Authorization'] = 'Bearer ' + AccessToken;
                     return httpRequest(originalRequest);
                 } catch (err) {
                     console.log('Refresh token expired or invalid, redirect to login');
-                    Cookies.remove('accessToken');
-                    Cookies.remove('refreshToken');
-                    window.location.href = '/';
+                    Cookies.remove('jwt');
+                    // Cookies.remove('refresh-token');
+                    // window.location.href = '/';
                 }
             } else {
                 window.location.href = '/';

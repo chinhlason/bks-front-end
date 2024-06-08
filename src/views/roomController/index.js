@@ -1,8 +1,25 @@
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './roomController.scss';
+import httpRequest from '~/util/httpRequest';
 
 function RoomController() {
     const navigate = useNavigate();
+    const [data, setData] = useState({});
+
+    useEffect(() => {
+        httpRequest
+            .get('/record/statistical')
+            .then((response) => {
+                console.log(response.data);
+                setData(response.data);
+            })
+            .catch((error) => {
+                console.error('There was an error fetching the data!', error);
+            });
+    }, []);
+
     return (
         <div className="container py-5">
             <h1> Thông tin các phòng thuộc sự quản lý của bác sĩ </h1>
@@ -15,7 +32,7 @@ function RoomController() {
                             navigate('/pending-record');
                         }}
                     >
-                        Số lượng bệnh nhân chưa được xử lý: 20
+                        Số lượng bệnh nhân chưa được xử lý: {data.PendingRc}
                     </div>
                 </div>
                 <div className="col-md-4">
@@ -25,7 +42,7 @@ function RoomController() {
                             navigate('/storage-only-c');
                         }}
                     >
-                        Số lượng thiết bị trong kho : 10
+                        Số lượng thiết bị trong kho : {data.AvailableDevice}
                     </div>
                 </div>
 
@@ -37,7 +54,7 @@ function RoomController() {
                             sessionStorage.setItem('prev-page', '/room-controller');
                         }}
                     >
-                        Số giường bệnh chưa sử dụng : 10
+                        Số giường bệnh chưa sử dụng : {data.AvailableBed}
                     </div>
                 </div>
                 <div className="col-md-4 mt-5">
