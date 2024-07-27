@@ -97,9 +97,9 @@ function BedInUse() {
     return (
         <div className="App py-5">
             <div className="container">
-                <h1>Danh sách thiết bị đang được sử dụng</h1>
+                <h1>Danh sách giường bệnh đang được sử dụng</h1>
 
-                <table {...getTableProps()} className="table mt-3">
+                <table {...getTableProps()} className="table mt-5">
                     <thead>
                         {headerGroups.map((headerGroup) => (
                             <tr {...headerGroup.getHeaderGroupProps()}>

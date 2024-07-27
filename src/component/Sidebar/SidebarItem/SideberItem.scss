@@ -6,4 +6,8 @@
         cursor: pointer;
         border-radius: 5px;
     }
+    &.selected {
+        background-color: rgba(0, 103, 81, 0.288); /* màu nền khác khi mục được chọn */
+        color: #003c1a; /* màu chữ khác khi mục được chọn */
+    }
 }

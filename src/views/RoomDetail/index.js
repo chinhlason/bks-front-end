@@ -14,6 +14,7 @@ function RoomDetail() {
     const [page, setPage] = React.useState(1); // State to track the current page
     const [pageSize, setPageSize] = React.useState(10); // State to track the page size
     const [maxPage, setMaxPage] = React.useState(1); // State to track the total number of pages
+    const [roomDetailAdmin, setRoomDetailAdmin] = React.useState({});
 
     const fetchRoomDetails = React.useCallback(() => {
         if (roomName) {
@@ -46,9 +47,31 @@ function RoomDetail() {
                 });
         }
     }, [roomName, page, pageSize]);
-
+    const fetchRoomDetailsAdmin = React.useCallback(() => {
+        if (roomName) {
+            const URL = `/room/get-admin?room=${roomName}`;
+            httpRequest
+                .get(URL)
+                .then((response) => {
+                    const sortedData = response.data.Members.sort((a, b) => {
+                        if (a.fullname < b.fullname) {
+                            return -1;
+                        }
+                        if (a.fullname > b.fullname) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                    setRoomDetailAdmin(response.data);
+                })
+                .catch((error) => {
+                    console.error('Error fetching room detail:', error);
+                });
+        }
+    }, []);
     React.useEffect(() => {
         fetchRoomDetails();
+        fetchRoomDetailsAdmin();
     }, [fetchRoomDetails]);
 
     const columns = React.useMemo(
@@ -119,6 +142,39 @@ function RoomDetail() {
         <div className="App py-5">
             <div className="container">
                 <h1>Chi tiết phòng bệnh {roomName}</h1>
+
+                <div className="row mt-3 mb-3">
+                    <div className="col-md-5">
+                        <h4>
+                            Bác sĩ phụ trách : {roomDetailAdmin.Leader?.doctor_code} -{' '}
+                            {roomDetailAdmin.Leader?.fullname}
+                        </h4>
+                        <h5>Số lượng bệnh nhân : {roomDetailAdmin.PatientNumber}</h5>
+                        <h5>Số lượng giường bệnh : {roomDetailAdmin.BedNumber}</h5>
+                    </div>
+                    <div className="col-md-7">
+                        <div className="row">
+                            <div className="col-md-7">
+                                <h4>Danh sách bác sĩ trong phòng bệnh ({roomDetailAdmin.Members?.length})</h4>
+
+                                <div className="member-box">
+                                    {roomDetailAdmin.Members?.map((member, index) => (
+                                        <div key={index} className="note-element-2 member-element row">
+                                            <div
+                                                onClick={() => {
+                                                    navigate(`/profile-admin?id=${roomDetailAdmin.Members[index].id}`);
+                                                }}
+                                                className="col-md-12 member-line text-line"
+                                            >
+                                                {member.fullname} - {member.doctor_code}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <MDBBtn
                     onClick={() => {
                         navigate('/pending-record');

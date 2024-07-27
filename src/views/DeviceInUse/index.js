@@ -10,9 +10,9 @@ function DeviceInUse() {
     const navigate = useNavigate();
     const queryParameters = new URLSearchParams(window.location.search);
     const roomName = queryParameters.get('name');
-    const [selectedIdRecord, setSelectedIdRecord] = React.useState(null); // State to store the selected IdRecord
+    const [selectedIdRecord, setSelectedIdRecord] = React.useState(null);
     const [roomDetail, setRoomDetail] = React.useState([]);
-    const [maxPage, setMaxPage] = React.useState(1); // State to track the total number of pages
+    const [online, setOnline] = React.useState([]);
 
     const fetchRoomDetails = React.useCallback(() => {
         const URL = `/device/get-in-use`;
@@ -20,20 +20,41 @@ function DeviceInUse() {
             .get(URL)
             .then((response) => {
                 console.log(response.data);
-                // Sort the data based on Device.serial alphabetically
                 const sortedData = response.data.sort((a, b) => a.Device.serial.localeCompare(b.Device.serial));
-                // Update the state with the sorted data
                 setRoomDetail(sortedData);
-                setMaxPage(response.data.Message); // Assuming the response has Message as maxPage
             })
             .catch((error) => {
                 console.error('Error fetching room detail:', error);
             });
     }, []);
 
+    const fetchOnline = React.useCallback(() => {
+        const URL = `/device/check-online`;
+        httpRequest
+            .get(URL)
+            .then((response) => {
+                console.log(response.data);
+                setOnline(Array.isArray(response.data.data) ? response.data.data : []);
+            })
+            .catch((error) => {
+                console.error('Error fetching online status:', error);
+            });
+    }, []);
+
     React.useEffect(() => {
         fetchRoomDetails();
-    }, [fetchRoomDetails]);
+        fetchOnline();
+    }, [fetchRoomDetails, fetchOnline]);
+
+    const mergeData = React.useMemo(() => {
+        return roomDetail.map((device) => {
+            const isOnline = online.some((onlineDevice) => onlineDevice.serial === device.Device.serial);
+            return {
+                ...device,
+                online: isOnline ? 'Online' : 'Offline',
+            };
+        });
+    }, [roomDetail, online]);
 
     const columns = React.useMemo(
         () => [
@@ -63,6 +84,11 @@ function DeviceInUse() {
                 accessor: 'InUseAt',
                 Cell: ({ value }) => moment(value).format('DD/MM/YYYY HH:mm:ss'),
             },
+            {
+                Header: 'Trạng thái online',
+                accessor: 'online',
+                Cell: ({ value }) => <span className={value === 'Online' ? 'online' : 'offline'}>{value}</span>,
+            },
         ],
         [],
     );
@@ -85,8 +111,8 @@ function DeviceInUse() {
     } = useTable(
         {
             columns,
-            data: roomDetail,
-            initialState: { pageIndex: 0, pageSize: 10 }, // Start with page index 0 and page size of 10
+            data: mergeData,
+            initialState: { pageIndex: 0, pageSize: 10 },
         },
         usePagination,
     );
@@ -95,7 +121,11 @@ function DeviceInUse() {
         <div className="App py-5">
             <div className="container">
                 <h1>Danh sách thiết bị đang được sử dụng</h1>
-
+                <h4>
+                    *Ghi chú : Thiết bị <span className="bold-text">Online</span> là thiết bị{' '}
+                    <span className="bold-text">có khả năng kết nối mạng </span>
+                    để gửi dữ liệu lên hệ thống
+                </h4>
                 <table {...getTableProps()} className="table mt-3">
                     <thead>
                         {headerGroups.map((headerGroup) => (
@@ -124,7 +154,6 @@ function DeviceInUse() {
                     </tbody>
                 </table>
 
-                {/* Pagination Controls */}
                 <div className="pagination">
                     <MDBBtn onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
                         {'Trang đầu'}

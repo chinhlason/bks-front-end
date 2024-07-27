@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './NoteBox.scss';
 import httpRequest from '~/util/httpRequest';
 
-const NoteBox = ({ noteDetail, onDelete }) => {
+const NoteBox = ({ noteDetail, onDelete, status }) => {
     const [editIndex, setEditIndex] = useState(null);
     const [editContent, setEditContent] = useState('');
 
@@ -78,11 +78,14 @@ const NoteBox = ({ noteDetail, onDelete }) => {
                                 </>
                             )}
                         </div>
-                        <div className="col-md-1 option-box">
+                        <div className="col-md-1 option-box ">
                             {editIndex === index ? null : (
                                 <>
-                                    <div onClick={() => handleEditClick(index, note.content)}>Sửa</div>
-                                    <div onClick={() => handleDeleteClick(index)}>Xóa</div>
+                                    {!status === 'LEAVED' && (
+                                        <div onClick={() => handleEditClick(index, note.content)}>Sửa</div>
+                                    )}
+
+                                    {!status === 'LEAVED' && <div onClick={() => handleDeleteClick(index)}>Xóa</div>}
                                 </>
                             )}
                         </div>

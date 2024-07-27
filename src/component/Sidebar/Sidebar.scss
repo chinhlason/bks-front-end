@@ -12,6 +12,13 @@
     // padding-left: 30px;
     display: flex;
     flex-direction: column;
+    transition: transform 0.3s ease;
+    &.hidden {
+        transform: translateX(-100%);
+    }
+    &.visible {
+        transform: translateX(0);
+    }
 }
 
 .test {

@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 const url = process.env.REACT_APP_BACKEND_URL;
 const httpRequest = axios.create({
-    baseURL: 'http://13.239.21.34:8081', // Thay bằng URL API của bạn
+    baseURL: 'http://202.191.56.11:8081', // Thay bằng URL API của bạn
     headers: {
         'Content-Type': 'application/json',
     },
@@ -33,11 +33,9 @@ httpRequest.interceptors.response.use(
             const refreshToken = Cookies.get('refresh-token');
             if (refreshToken) {
                 try {
-                    const response = await httpRequest.post(
-                        `/refresh-token?refresh-token=${refreshToken}`,
-                        { token: refreshToken },
-                        { withCredentials: true },
-                    );
+                    const response = await httpRequest.post(`/refresh-token?refresh-token=${refreshToken}`, {
+                        token: refreshToken,
+                    });
                     const { AccessToken } = response.data.Data;
                     Cookies.set('jwt', response.data.Data, { expires: 7 });
                     httpRequest.defaults.headers['Authorization'] = 'Bearer ' + AccessToken;

@@ -3,7 +3,7 @@ import axios from 'axios';
 const url = process.env.REACT_APP_BACKEND_URL;
 
 const httpRequest = axios.create({
-    baseURL: 'http://13.239.21.34:8081',
+    baseURL: 'http://202.191.56.11:8081',
     headers: {
         'Content-Type': 'application/json',
     },

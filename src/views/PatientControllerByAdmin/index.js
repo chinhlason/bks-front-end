@@ -18,16 +18,23 @@ function PatientControllerByAdmin() {
     const [devices, setDevices] = React.useState([]);
     const [searchValue, setSearchValue] = React.useState('');
     const [isSearching, setIsSearching] = React.useState(false);
+    const [filterStatus, setFilterStatus] = React.useState(''); // New state for filter value
     const queryParameters = new URLSearchParams(window.location.search);
     const patient = queryParameters.get('patient');
     const id = queryParameters.get('id');
     const nav = useNavigate();
 
-    const fetchData = () => {
+    const fetchData = (status = '') => {
         httpRequest
             .get('/record/get-all-total-admin')
             .then((response) => {
-                const sortedData = response.data.sort((a, b) => {
+                let filteredData = response.data;
+
+                if (status) {
+                    filteredData = filteredData.filter((item) => item.Status === status);
+                }
+
+                const sortedData = filteredData.sort((a, b) => {
                     const nameA = a.Fullname.toUpperCase(); // Chuyển tên thành chữ hoa để so sánh
                     const nameB = b.Fullname.toUpperCase();
 
@@ -48,10 +55,11 @@ function PatientControllerByAdmin() {
             });
     };
 
-    const fetchSearchResults = (value) => {
+    const fetchSearchResults = (value, status = '') => {
         setIsSearching(true);
+        const url = `/record/search-admin?q=${value}`;
         httpRequest
-            .get(`/record/search-admin?q=${value}`)
+            .get(url)
             .then((response) => {
                 const sortedData = response.data.sort((a, b) => {
                     const nameA = a.Fullname.toUpperCase();
@@ -77,8 +85,8 @@ function PatientControllerByAdmin() {
     };
 
     React.useEffect(() => {
-        fetchData();
-    }, []);
+        fetchData(filterStatus);
+    }, [filterStatus]);
 
     const debounce = (func, delay) => {
         let timeoutId;
@@ -94,18 +102,22 @@ function PatientControllerByAdmin() {
 
     React.useEffect(() => {
         if (searchValue) {
-            debouncedFetchSearchResults(searchValue);
+            debouncedFetchSearchResults(searchValue, filterStatus);
         } else {
-            fetchData();
+            fetchData(filterStatus);
         }
-    }, [searchValue]);
+    }, [searchValue, filterStatus]);
 
     const handleSearchChange = (e) => {
         setSearchValue(e.target.value);
     };
 
     const handleSearchClick = () => {
-        fetchSearchResults(searchValue);
+        fetchSearchResults(searchValue, filterStatus);
+    };
+
+    const handleFilterChange = (e) => {
+        setFilterStatus(e.target.value);
     };
 
     const data = React.useMemo(() => devices, [devices]);
@@ -175,17 +187,29 @@ function PatientControllerByAdmin() {
         <div className="App py-5">
             <div className="container">
                 <h1>Danh sách bệnh nhân thuộc quản lý của bác sĩ</h1>
-                <MDBInputGroup className="mt-3 mb-3">
-                    <MDBInput
-                        id="search"
-                        label="Tìm kiếm bệnh nhân"
-                        value={searchValue}
-                        onChange={handleSearchChange}
-                    />
-                    <MDBBtn rippleColor="dark" onClick={handleSearchClick}>
-                        <MDBIcon icon="search" />
-                    </MDBBtn>
-                </MDBInputGroup>
+                <div className="row">
+                    <div className="col-md-9">
+                        <MDBInputGroup className="mt-3 mb-3 ">
+                            <MDBInput
+                                id="search"
+                                label="Tìm kiếm bệnh nhân"
+                                value={searchValue}
+                                onChange={handleSearchChange}
+                            />
+                            <MDBBtn rippleColor="dark" onClick={handleSearchClick}>
+                                <MDBIcon icon="search" />
+                            </MDBBtn>
+                        </MDBInputGroup>
+                    </div>
+                    <div className="filter-option col-md-2">
+                        <select className="form-control " value={filterStatus} onChange={handleFilterChange}>
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="TREATING">TREATING</option>
+                            <option value="LEAVED">LEAVED</option>
+                            <option value="PENDING">PENDING</option>
+                        </select>
+                    </div>
+                </div>
                 {isSearching ? (
                     <p>Đang tìm kiếm...</p>
                 ) : (

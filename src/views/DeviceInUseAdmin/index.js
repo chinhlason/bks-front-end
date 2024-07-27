@@ -13,6 +13,7 @@ function DeviceInUseAdmin() {
     const [selectedIdRecord, setSelectedIdRecord] = React.useState(null); // State to store the selected IdRecord
     const [roomDetail, setRoomDetail] = React.useState([]);
     const [maxPage, setMaxPage] = React.useState(1); // State to track the total number of pages
+    const [online, setOnline] = React.useState([]);
 
     const fetchRoomDetails = React.useCallback(() => {
         const URL = `/device/get-in-use-admin`;
@@ -30,11 +31,31 @@ function DeviceInUseAdmin() {
                 console.error('Error fetching room detail:', error);
             });
     }, []);
-
+    const fetchOnline = React.useCallback(() => {
+        const URL = `/device/check-online`;
+        httpRequest
+            .get(URL)
+            .then((response) => {
+                console.log(response.data);
+                setOnline(Array.isArray(response.data.data) ? response.data.data : []);
+            })
+            .catch((error) => {
+                console.error('Error fetching online status:', error);
+            });
+    }, []);
     React.useEffect(() => {
         fetchRoomDetails();
-    }, [fetchRoomDetails]);
-
+        fetchOnline();
+    }, [fetchRoomDetails, fetchOnline]);
+    const mergeData = React.useMemo(() => {
+        return roomDetail.map((device) => {
+            const isOnline = online.some((onlineDevice) => onlineDevice.serial === device.Device.serial);
+            return {
+                ...device,
+                online: isOnline ? 'Online' : 'Offline',
+            };
+        });
+    }, [roomDetail, online]);
     const columns = React.useMemo(
         () => [
             {
@@ -63,6 +84,11 @@ function DeviceInUseAdmin() {
                 accessor: 'InUseAt',
                 Cell: ({ value }) => moment(value).format('DD/MM/YYYY HH:mm:ss'),
             },
+            {
+                Header: 'Trạng thái online',
+                accessor: 'online',
+                Cell: ({ value }) => <span className={value === 'Online' ? 'online' : 'offline'}>{value}</span>,
+            },
         ],
         [],
     );
@@ -85,7 +111,7 @@ function DeviceInUseAdmin() {
     } = useTable(
         {
             columns,
-            data: roomDetail,
+            data: mergeData,
             initialState: { pageIndex: 0, pageSize: 10 }, // Start with page index 0 and page size of 10
         },
         usePagination,
@@ -95,7 +121,11 @@ function DeviceInUseAdmin() {
         <div className="App py-5">
             <div className="container">
                 <h1>Danh sách thiết bị đang được sử dụng</h1>
-
+                <h4>
+                    *Ghi chú : Thiết bị <span className="bold-text">Online</span> là thiết bị{' '}
+                    <span className="bold-text">có khả năng kết nối mạng </span>
+                    để gửi dữ liệu lên hệ thống
+                </h4>
                 <table {...getTableProps()} className="table mt-3">
                     <thead>
                         {headerGroups.map((headerGroup) => (

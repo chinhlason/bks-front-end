@@ -89,3 +89,13 @@ li {
     pointer-events: none;
     opacity: 0.3; /* Hoặc bất kỳ giá trị nào bạn muốn */
 }
+
+.online {
+    color: green;
+    font-weight: bold;
+}
+
+.offline {
+    color: red;
+    font-weight: bold;
+}

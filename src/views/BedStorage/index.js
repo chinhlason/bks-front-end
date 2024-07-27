@@ -94,7 +94,7 @@ function BedStorage() {
             const userConfirmed = window.confirm(`Xác nhận chọn giường ${name} trong phòng ${Room.name} ?`);
             if (userConfirmed) {
                 const requestBody = {
-                    PatientCode: patient,
+                    IdRecord: id,
                     BedName: name,
                     RoomName: Room.name,
                 };

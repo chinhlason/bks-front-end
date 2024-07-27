@@ -54,6 +54,7 @@ function Profile() {
                 alert('Cập nhật thông tin thành công');
                 setProfileData(response.data);
                 setIsEditing(false);
+                localStorage.setItem('Fullname', data.fullname);
                 fetchData();
             })
             .catch((error) => {

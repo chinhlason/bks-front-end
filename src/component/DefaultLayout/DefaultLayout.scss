@@ -31,3 +31,47 @@
 // .content-wrapper {
 //     width: calc((12 - 1.67) * 100%);
 // }
+.container-main {
+    .toggle-sidebar-icon {
+        position: fixed;
+        top: 10px;
+        left: 1%;
+        z-index: 1000;
+        cursor: pointer;
+        transition: left 0.3s ease;
+    }
+
+    .toggle-sidebar-icon.mid {
+        left: 13%;
+    }
+
+    .row {
+        display: flex;
+        width: 100%;
+    }
+
+    .side-bar-wrapper {
+        transition: width 0.3s ease;
+    }
+
+    .body-wrapper {
+        transition: width 0.3s ease;
+    }
+
+    .sidebar-visible {
+        width: 13% !important;
+    }
+
+    .sidebar-hidden {
+        width: 0 !important;
+        overflow: hidden;
+    }
+
+    .body-with-sidebar {
+        width: 87% !important;
+    }
+
+    .body-full-width {
+        width: 100% !important;
+    }
+}

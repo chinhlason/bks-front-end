@@ -98,7 +98,7 @@ function DeviceStorage() {
         const userConfirmed = window.confirm(`Xác nhận chọn thiết bị ${serial} ?`);
         if (userConfirmed) {
             const requestBody = {
-                PatientCode: patient,
+                IdRecord: id,
                 Serial: serial,
             };
 

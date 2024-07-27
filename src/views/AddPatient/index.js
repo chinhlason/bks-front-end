@@ -152,7 +152,7 @@ function AddPatient() {
                     </div>
                     <div className="mt-3">
                         <div className="row">
-                            <div className="col-md-4">Lý do nhập viện</div>
+                            <div className="col-md-4">Mô tả thêm</div>
                             <div className="col-md-8">
                                 <textarea
                                     className="form-control mt-1 note-detail"

@@ -10,8 +10,10 @@ import { useEffect, useRef, useState } from 'react';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useForm, Controller } from 'react-hook-form';
 import httpRequest from '~/util/httpRequest';
+import moment from 'moment';
 import NoteBox from '~/component/NoteBox';
-
+import { faL } from '@fortawesome/free-solid-svg-icons';
+import Sound from '~/assets/video/flash-flood-warning-phoenix-76607.mp3';
 function PatientDetail() {
     const chartRef = useRef(null);
     Chart.register(zoomPlugin);
@@ -27,25 +29,35 @@ function PatientDetail() {
     const [noteDetail, setNoteDetail] = useState([]);
     const [bedDetail, setBedDetail] = useState([]);
     const [deviceDetail, setDeviceDetail] = useState([]);
+    const [isWarning, setIsWarning] = useState(false);
+    const [continueWarning, setContinueWarning] = useState(true);
+    const [sampleTime, setSampleTime] = useState(15);
     const [historyDetail, setHistoryDetail] = useState([]);
     const [currBedDetail, setCurrBedDetail] = useState({});
     const [currDeviceDetail, setCurrDeviceDetail] = useState({});
     const [isUpdateVisible, setIsUpdateVisible] = React.useState(false);
+    const continueWarningRef = useRef(continueWarning);
     const [status, setStatus] = useState('');
     const [time, setTime] = useState('');
+    const audioRef = useRef(null);
+    const unsubscribeRef = useRef(null);
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors },
     } = useForm();
-
+    const { register: newSample, handleSubmit: handleControl } = useForm();
+    const {
+        register: registerDevice,
+        handleSubmit: handleSubmitDevice,
+        formState: { errors: errorsDevice },
+    } = useForm();
     const fetchData = () => {
         httpRequest
             .get(URL)
             .then((response) => {
                 const data = response.data;
-                console.log('1', data);
                 setPatientDetail(data.Patient);
                 setStatus(data.Status);
                 setTime(data.CreateAt);
@@ -76,87 +88,143 @@ function PatientDetail() {
                 console.error('Error fetching rooms:', error);
             });
     };
-    console.log(noteDetail);
+
+    useEffect(() => {
+        // Kiểm tra nếu giá trị alertMark chưa được thiết lập trong local storage
+        if (!localStorage.getItem(idRecord)) {
+            localStorage.setItem(idRecord, '1000');
+        }
+    }, []);
 
     useEffect(() => {
         fetchData();
+        const key = idRecord + 'sample';
+        const sample = localStorage.getItem(key);
+        if (sample) {
+            setSampleTime(sample);
+        } else {
+            setSampleTime(15);
+        }
     }, []);
 
     useEffect(() => {
         if (deviceDetail[0]) {
             const notInUseAt =
                 deviceDetail[0]?.NotInuseAt === '0001-01-01T00:00:00Z'
-                    ? new Date().getTime()
+                    ? new Date().getTime() + 1000000
                     : new Date(deviceDetail[0]?.NotInuseAt).getTime();
             ConfigFirebase(deviceDetail[0]?.Device.serial, new Date(deviceDetail[0]?.InuseAt).getTime(), notInUseAt);
         }
+
+        return () => {
+            if (unsubscribeRef.current) {
+                unsubscribeRef.current();
+            }
+        };
     }, [deviceDetail[0]]);
 
     const handleSelectChange = (e) => {
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current();
+        }
+
         const selectedOption = e.target.options[e.target.selectedIndex];
         const newSerial = selectedOption.value;
-        const inUseAt = new Date(selectedOption.getAttribute('data-inuseat')).getTime() - 1000000000;
+        const inUseAt = new Date(selectedOption.getAttribute('data-inuseat')).getTime();
         const notInUseAt =
             selectedOption.getAttribute('data-notinuseat') === '0001-01-01T00:00:00Z'
-                ? new Date().getTime()
+                ? new Date().getTime() + 1000000
                 : new Date(selectedOption.getAttribute('data-notinuseat')).getTime();
-
-        ConfigFirebase(newSerial, inUseAt, notInUseAt);
+        unsubscribeRef.current = ConfigFirebase(newSerial, inUseAt, notInUseAt);
     };
 
-    function ConfigFirebase(serial, inUseAt, notInUseAt) {
-        const firebaseConfig = {
-            apiKey: 'AIzaSyBkml6LOe9i1XCPHuEZD1HnKtOLVbPzYbo',
-            authDomain: 'ibmelab-firebase.firebaseapp.com',
-            databaseURL: 'https://ibmelab-firebase-default-rtdb.asia-southeast1.firebasedatabase.app',
-            projectId: 'ibmelab-firebase',
-            storageBucket: 'ibmelab-firebase.appspot.com',
-            messagingSenderId: '476643915776',
-            appId: '1:476643915776:web:a29161d17f36a1bd9580e5',
-            measurementId: 'G-4ZVSTZYJN0',
-        };
-        const app = initializeApp(firebaseConfig);
-        const dataBase = getDatabase(app);
+    const firebaseConfig = {
+        apiKey: 'AIzaSyBkml6LOe9i1XCPHuEZD1HnKtOLVbPzYbo',
+        authDomain: 'ibmelab-firebase.firebaseapp.com',
+        databaseURL: 'https://ibmelab-firebase-default-rtdb.asia-southeast1.firebasedatabase.app',
+        projectId: 'ibmelab-firebase',
+        storageBucket: 'ibmelab-firebase.appspot.com',
+        messagingSenderId: '476643915776',
+        appId: '1:476643915776:web:a29161d17f36a1bd9580e5',
+        measurementId: 'G-4ZVSTZYJN0',
+    };
 
-        onValue(ref(dataBase, `devices/${serial}`), (snapshot) => {
+    let firebaseApp;
+
+    if (!firebaseApp) {
+        firebaseApp = initializeApp(firebaseConfig);
+    }
+
+    const database = getDatabase(firebaseApp);
+
+    function ConfigFirebase(serial, inUseAt, notInUseAt) {
+        const alertMarkCheck = parseFloat(localStorage.getItem(idRecord) || '2000');
+        const dataRef = ref(database, `ibme/device/data/${serial}`);
+
+        const unsubscribe = onValue(dataRef, (snapshot) => {
             const data = snapshot.val();
-            const nowTest = new Date().getTime() + 10000000000;
-            const now = new Date('2024-05-22T10:42:24.293Z').getTime();
-            const twentyFourHoursAgo = new Date('2024-05-22T10:40:14.301Z').getTime();
-            const filteredData = Object.entries(data)
-                .filter(
-                    ([key, value]) =>
-                        new Date(value.timestamp).getTime() >= inUseAt &&
-                        new Date(value.timestamp).getTime() <= nowTest,
-                )
+            const entries = Object.entries(data);
+            const latestEntry = entries[entries.length - 1][1];
+
+            if (latestEntry.volume >= alertMarkCheck && continueWarningRef.current === true) {
+                console.log('check', continueWarning);
+                setIsWarning(true);
+            } else {
+                setIsWarning(false);
+            }
+
+            const filteredData = entries
+                .filter(([key, value]) => {
+                    const timestamp = new Date(value.timestamp).getTime();
+                    return timestamp >= inUseAt && timestamp <= notInUseAt;
+                })
                 .reduce((obj, [key, value]) => {
                     obj[key] = value;
                     return obj;
                 }, {});
 
             const volumes = Object.values(filteredData).map((item) => item.volume);
-            const timestamps = Object.values(filteredData).map((item) => new Date(item.timestamp).toLocaleString());
+            const timestamps = Object.values(filteredData).map((item) => new Date(item.timestamp));
 
             // Draw chart
             drawChart(volumes, timestamps);
         });
+        return unsubscribe;
     }
 
-    function removeData(chart) {
-        chart.data.labels.pop();
-        chart.data.datasets.forEach((dataset) => {
-            dataset.data.pop();
-        });
-        chart.update();
-    }
+    const handleStop = () => {
+        setIsWarning(false);
+        setContinueWarning(false);
+        setTimeout(() => {
+            setContinueWarning(true);
+        }, 30000); // 5 minutes in milliseconds
+    };
+
+    const handleOffAlert = () => {
+        setIsWarning(false);
+        setContinueWarning(false);
+    };
+
+    useEffect(() => {
+        if (isWarning && audioRef.current) {
+            audioRef.current.play().catch((error) => {
+                console.log('Play audio failed:', error);
+            });
+        }
+    }, [isWarning]);
+
+    useEffect(() => {
+        continueWarningRef.current = continueWarning;
+    }, [continueWarning]);
 
     const drawChart = (volumes, timestamps) => {
         if (chartRef.current) {
             try {
+                const localTimestamps = timestamps.map((ts) => moment(ts).format('YYYY-MM-DD HH:mm:ss'));
                 const config = {
                     type: 'line',
                     data: {
-                        labels: timestamps,
+                        labels: localTimestamps,
                         datasets: [
                             {
                                 label: 'Khối lượng',
@@ -237,7 +305,7 @@ function PatientDetail() {
         const userConfirmed = window.confirm(`Bạn có chắc chắn muốn huỷ giường ${currBedDetail.name} này không?`);
         if (userConfirmed) {
             httpRequest
-                .put(`/bed/unusage-bed?bed=${currBedDetail.name}&room=${currBedDetail.Room.name}`, {})
+                .put(`/bed/unusage-bed?bed=${currBedDetail.name}&room=${currBedDetail.Room.name}&id=${idRecord}`, {})
                 .then((response) => {
                     fetchData(); // Re-fetch data to update the component
                 })
@@ -268,7 +336,7 @@ function PatientDetail() {
         const noteData = {
             Content: data.comment,
             ImgUrl: 'oldurl',
-            PatientCode: patientDetail.patient_code,
+            IdRecord: idRecord,
         };
 
         httpRequest
@@ -280,6 +348,26 @@ function PatientDetail() {
             .catch((error) => {
                 console.error('Error creating note:', error);
             });
+    };
+
+    const onSubmitControl = (data) => {
+        httpRequest
+            .post(`/device/change-sample?device=${currDeviceDetail.serial}&time=${data.newSampleDevice}`, {})
+            .then((response) => {
+                alert('Cập nhật thành công');
+                fetchData();
+                const key = idRecord + 'sample';
+                localStorage.setItem(key, data.newSampleDevice);
+                setSampleTime(data.newSampleDevice);
+                setIsUpdateVisible(false);
+            })
+            .catch((error) => {
+                console.error('Error creating note:', error);
+            });
+    };
+
+    const onUpdateAlert = (data) => {
+        localStorage.setItem(idRecord, data.newSample);
     };
 
     const handleOn = () => {
@@ -311,6 +399,40 @@ function PatientDetail() {
     return (
         <div className="App py-5">
             <div className="container">
+                {isWarning && (
+                    <div>
+                        <div
+                            className="update-overlay-red"
+                            onClick={() => {
+                                handleStop();
+                            }}
+                        ></div>
+                        <div className="update-modal-warn">
+                            <div className="container update-wrapper">
+                                <h1>Cảnh báo vượt ngưỡng !!!!</h1>
+                                <audio ref={audioRef} src={Sound} />
+                                <div className="onoff-wrap">
+                                    <MDBBtn
+                                        onClick={() => {
+                                            handleStop();
+                                        }}
+                                        className="btn-onoff"
+                                    >
+                                        Tắt tạm thời
+                                    </MDBBtn>
+                                    <MDBBtn
+                                        onClick={() => {
+                                            handleOffAlert();
+                                        }}
+                                        className="btn-onoff"
+                                    >
+                                        Tắt thông báo cho đến khi bật lại
+                                    </MDBBtn>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {isUpdateVisible && (
                     <div>
                         <div
@@ -319,8 +441,60 @@ function PatientDetail() {
                                 setIsUpdateVisible(false);
                             }}
                         ></div>
-                        <div className="update-modal-small">
+                        <div className="update-modal">
                             <div className="container update-wrapper">
+                                <h2>Cập nhật thông tin thiết bị</h2>
+                                <div className="row">
+                                    <div className="col-md-6">
+                                        <div>*5 phút = 300 giây</div>
+                                        <div>*10 phút = 600 giây</div>
+                                        <div>*15 phút = 900 giây</div>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <div>*20 phút = 1200 giây</div>
+                                        <div>*30 phút = 1800 giây</div>
+                                        <div>*1 giờ = 3600 giây</div>
+                                    </div>
+                                </div>
+                                <div className="row">
+                                    <form className="form-box col-md-6" onSubmit={handleSubmitDevice(onSubmitControl)}>
+                                        <div className="form-group mt-3">
+                                            <label>Thời gian gửi dữ liệu (giây)</label>
+                                            <input
+                                                className="form-control mt-1"
+                                                placeholder="Thời gian gửi dữ liệu (giây)"
+                                                {...registerDevice('newSampleDevice', {
+                                                    required: 'Thời gian gửi dữ liệu là bắt buộc',
+                                                })}
+                                            />
+                                            {errorsDevice.newSampleDevice && (
+                                                <span>{errorsDevice.newSampleDevice.message}</span>
+                                            )}
+                                        </div>
+                                        <div className="d-grid gap-2 mt-3">
+                                            <MDBBtn className="update-button" type="submit">
+                                                Cập nhật thời gian
+                                            </MDBBtn>
+                                        </div>
+                                    </form>
+
+                                    <form className="form-box col-md-6" onSubmit={handleControl(onUpdateAlert)}>
+                                        <div className="form-group mt-3">
+                                            <label>Chỉnh mốc dữ liệu cảnh báo</label>
+                                            <input
+                                                className="form-control mt-1"
+                                                placeholder="Chỉnh mốc dữ liệu cảnh báo"
+                                                type="number"
+                                                {...newSample('newSample')}
+                                            />
+                                            {errors.newSample && <span>{errors.newSample.message}</span>}
+                                        </div>
+                                        <div className="d-grid gap-2 mt-3">
+                                            <MDBBtn className="update-button">Cập nhật mốc</MDBBtn>
+                                        </div>
+                                    </form>
+                                </div>
+
                                 <div className="onoff-wrap">
                                     <MDBBtn
                                         onClick={() => {
@@ -353,8 +527,9 @@ function PatientDetail() {
                     <div className="option-rc col-md-4">
                         <h3
                             className={`device-option-button  ${
-                                Object.keys(currDeviceDetail).length !== 0 &&
-                                currDeviceDetail.id !== `00000000-0000-0000-0000-000000000000`
+                                (Object.keys(currDeviceDetail).length !== 0 &&
+                                    currDeviceDetail.id !== `00000000-0000-0000-0000-000000000000`) ||
+                                status == 'LEAVED'
                                     ? 'disabled'
                                     : ''
                             }`}
@@ -373,7 +548,10 @@ function PatientDetail() {
                             )}
                         </h3>
 
-                        <h3 className="device-option-button" onClick={handleLeaveClick}>
+                        <h3
+                            className={`device-option-button ${status == 'LEAVED' ? 'disabled' : ''}`}
+                            onClick={handleLeaveClick}
+                        >
                             Xuất viện
                         </h3>
                     </div>
@@ -434,7 +612,8 @@ function PatientDetail() {
                     <div
                         className={`device-option-button ${
                             Object.keys(currBedDetail).length === 0 ||
-                            currBedDetail.id === `00000000-0000-0000-0000-000000000000`
+                            currBedDetail.id === `00000000-0000-0000-0000-000000000000` ||
+                            status == 'LEAVED'
                                 ? 'disabled'
                                 : ''
                         }`}
@@ -455,22 +634,38 @@ function PatientDetail() {
                                     Gỡ thiết bị
                                 </div>
                                 <div className="toggle-device ml-3" onClick={handleOnOffDeviceClick}>
-                                    Bật/Tắt thiết bị
+                                    Điều khiển thiết bị
                                 </div>
                             </div>
                         )}
                     </div>
                 </h3>
+
+                <MDBBtn
+                    onClick={() => {
+                        setContinueWarning(true);
+                    }}
+                >
+                    Bật cảnh báo
+                </MDBBtn>
                 {currDeviceDetail.id != `00000000-0000-0000-0000-000000000000` ? (
                     <div>
                         <canvas id="chart" ref={chartRef}></canvas>
+                        <h4>
+                            Thời gian gửi dữ liệu lên hệ thống{' '}
+                            <span className="bold-text">
+                                {sampleTime} (giây) - {sampleTime / 60} (phút)
+                            </span>
+                        </h4>
                     </div>
                 ) : (
-                    <canvas id="chart" ref={chartRef}></canvas>
+                    <div>
+                        <canvas id="chart" ref={chartRef}></canvas>
+                    </div>
                 )}
                 <h3 className="mt-3">Ghi chú của bác sĩ</h3>
                 <div className="row mt-3">
-                    <NoteBox noteDetail={noteDetail} onDelete={handleNoteDelete} />
+                    <NoteBox noteDetail={noteDetail} onDelete={handleNoteDelete} status={status} />
 
                     <div className="col-md-4 note-form">
                         <div className="ml-2">
@@ -486,7 +681,7 @@ function PatientDetail() {
                                 </div>
                                 {errors.comment && <span className="text-danger">{errors.comment.message}</span>}
                                 <div className="d-grid gap-2 mt-3">
-                                    <button type="submit" className="btn btn-primary">
+                                    <button className={`btn btn-primary ${status == 'LEAVED' ? 'disabled' : ''}`}>
                                         Lưu
                                     </button>
                                 </div>
