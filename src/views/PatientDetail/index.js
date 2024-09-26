@@ -167,7 +167,6 @@ function PatientDetail() {
             const latestEntry = entries[entries.length - 1][1];
 
             if (latestEntry.volume >= alertMarkCheck && continueWarningRef.current === true) {
-                console.log('check', continueWarning);
                 setIsWarning(true);
             } else {
                 setIsWarning(false);
@@ -182,6 +181,8 @@ function PatientDetail() {
                     obj[key] = value;
                     return obj;
                 }, {});
+
+            console.log('filteredData', filteredData);
 
             const volumes = Object.values(filteredData).map((item) => item.volume);
             const timestamps = Object.values(filteredData).map((item) => new Date(item.timestamp));
